@@ -31,5 +31,3 @@ Thumbs.db
 # Keep the Gradle wrapper jar (it's needed to build)
 !gradle/wrapper/gradle-wrapper.jar
 
-# Local AI-workflow notes (kept out of the public repo)
-CLAUDE.md

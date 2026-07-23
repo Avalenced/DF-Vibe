@@ -1,0 +1,1347 @@
+# DiamondFire action reference (complete)
+
+> **Generated** from `codec/actiondump.json` by `codec/gen_action_reference.py`. Do not hand-edit. Names are **verbatim** — use them exactly in builder calls (`PlayerAction('SendMessage', …)`). **Before writing a workaround, grep this file** — DF probably already has a block for it.
+>
+> **Signature notation:** `(var, num, [txt], item...)` — arg types in order; `[x]` = optional, `x...` = repeatable. Types map to builders: `var`→`var()`, `num`→`num()`, `txt`→`txt()`, `comp`→`comp()`, `loc`→`loc()`, `item`→`item()`, `snd`→`snd()`, `pot`→`pot()`. For Set Variable, the **first `var` is the output**.
+
+## Don't reinvent these — DF has a block for it
+
+Common things people hand-roll that are a single action in DiamondFire:
+
+- **`GzipCompress(var, byte...)`** (set_var) — Compresses bytes as a list of numbers to Gzip.
+- **`GzipDecompress(var, byte...)`** (set_var) — Decompresses Gzip-compressed bytes as a list of numbers.
+- **`Base64Encode(var, byte...)`** (set_var) — Encodes bytes as a list of numbers to Base64.
+- **`Base64Decode(var, byte...)`** (set_var) — Decodes Base64-encoded bytes as a list of numbers.
+- **`WebResponse(var, txt, [txt])`** (set_var) — Gets the response from a web request.  The output dictionary has 3 keys: "status": The HTTP status code. "statusText": The HTTP status message. And "body", or "json" if the response is JSON.
+- **`ValueToJson(var, num, txt, list, dict)`** (set_var) — Converts a value to JSON.
+- **`JsonToValue(var, txt)`** (set_var) — Converts JSON to a value.
+- **`SetMapTexture(var, [item], txt)`** (set_var) — Sets a map item's texture to the image at the given URL.
+- **`RandomNumber(var, num, num)`** (set_var) — Sets a variable to a random number between two other numbers.
+- **`SetItemCooldown(item, num)`** (player_action) — Applies a cooldown visual effect to an item type.
+- **`GetItemCooldown(var, item)`** (player_action) — Gets the remaining cooldown on an item type.
+- **`NoItemCooldown(item...)`** (if_player) — Checks if a player does not have a cooldown applied to an item type.
+- **`SpawnTextDisplay(loc, comp...)`** (game_action) — Spawns a text display entity.
+
+Also built in: **variable scopes** for persistence (no DB needed), **dictionaries & lists** with dozens of ops (see Set Variable below), **Web Request** for external data, **Variable Buckets** for cross-plot storage, **text displays / holograms** as game actions. Browse the relevant section before building from primitives.
+
+## Player Events
+`event(...)` — 69 actions
+
+- `BreakBlock` — Executes code when a player breaks a block.
+- `BreakItem` — Executes code when a player breaks an item.
+- `ChangeSign` — Executes code when a player changes a sign.
+- `ChangeSlot` — Executes code when a player changes their hotbar slot.
+- `Chat` — Executes code when a player sends a chat message.
+- `ClickContainerSlot` — Executes code when a player clicks a slot in a container.
+- `ClickEntity` — Executes code when a player right clicks an entity.
+- `ClickInvSlot` — Executes code when a player clicks a slot inside their inventory.
+- `ClickMenuSlot` — Executes code when a player clicks a slot in an inventory menu.
+- `ClickPlayer` — Executes code when a player right clicks another player.
+- `CloseInv` — Executes code when a player closes an inventory.
+- `CloudImbuePlayer` — Executes code when an area of effect cloud applies its potion effect(s) to a player.
+- `Command` — Executes code when a player types a command on the plot.
+- `Consume` — Executes code when a player eats or drinks an item.
+- `DamageEntity` — Executes code when a player damages an entity.
+- `Death` — Executes code when a player dies, not as a result of another player or entity.
+- `Dismount` — Executes code when a player dismounts a vehicle or other entity.
+- `DropItem` — Executes code when a player drops an item.
+- `EntityDmgPlayer` — Executes code when an entity damages a player.
+- `Exhaustion` — Executes code when a player gains exhaustion.
+- `FallDamage`
+- `Fish` — Executes code when a player fishes an entity, player, or nothing.
+- `HorseJump` — Executes code when a player causes a horse to jump.
+- `Join` — Executes code when a player joins the plot.
+- `Jump` — Executes code when a player jumps.
+- `KillMob` — Executes code when a player kills a mob.
+- `KillPlayer` — Executes code when a player kills another player.
+- `Leave` — Executes code when a player leaves the plot.
+- `LeftClick` — Executes code when a player left clicks.
+- `LeftClickEntity` — Executes code when a player left clicks an entity.
+- `LeftClickPlayer` — Executes code when a player left clicks another player.
+- `LoadCrossbow` — Executes code when a player loads a crossbow.
+- `LoopEvent`
+- `MobKillPlayer` — Executes code when a mob kills a player.
+- `Move` — Executes code when a player moves.
+- `MovementKey` — Executes code when a player presses or releases movement keys.
+- `PackDecline` — Executes code when a player declines a plot resource pack prompt.
+- `PackLoad` — Executes code when a player finishes loading a plot resource pack.
+- `PickBlock` — Executes code when a player uses their Pick Block key bind on a block.
+- `PickEntity` — Executes code when a player uses their Pick Block key bind on an entity.
+- `PickUpItem` — Executes code when a player picks up an item.
+- `PlaceBlock` — Executes code when a player places a block.
+- `PlayerCombust` — Executes code when a player catches on fire.
+- `PlayerDmgPlayer` — Executes code when a player damages another player.
+- `PlayerHeal` — Executes code when a player regains health from any source.
+- `PlayerResurrect` — Executes code when a player resurrects with a totem of undying.
+- `PlayerTakeDmg` — Executes code when a player takes damage.
+- `ProjDmgPlayer` — Executes code when a projectile damages a player.
+- `ProjHit` — Executes code when a projectile launched by a player hits a block, an entity, or another player.
+- `Purchase` — Executes code when a player purchases a plot product.
+- `Respawn` — Executes code when a player respawns.
+- `RightClick` — Executes code when a player right clicks while looking at a block or holding an item.
+- `Riptide` — Executes code when a player throws a riptide trident.
+- `ShootBow` — Executes code when a player fires an arrow with a bow.
+- `ShootProjectile` — Executes code when a player throws a projectile such as snowballs or eggs.
+- `Sneak` — Executes code when a player sneaks.
+- `StartFly` — Executes code when a player starts flying.
+- `StartGlide` — Executes code when a player starts gliding.
+- `StartSprint` — Executes code when a player starts sprinting.
+- `StopFly` — Executes code when a player stops flying.
+- `StopGlide` — Executes code when a player stops gliding.
+- `StopSprint` — Executes code when a player stops sprinting.
+- `SwapHands` — Executes code when a player swaps an item or items between their main hand and off hand.
+- `TameEntity` — Executes code when a player tames a mob.
+- `Teleport` — Executes code when a player is teleported.
+- `Unsneak` — Executes code when a player stops sneaking.
+- `VehicleJump` — Executes code when a player presses the jump key while riding a vehicle or other entity.
+- `VillagerTrade` — Executes code when a player trades with a villager.
+- `Walk` — Executes code while a player is walking.
+
+## Entity Events
+`entity_event(...)` — 19 actions
+
+- `BlockFall` — Executes code when a block affected by gravity turns into a falling block.
+- `EntityCombust` — Executes code when an entity catches on fire.
+- `EntityDeath` — Executes code when an entity dies by natural causes.
+- `EntityDmg` — Executes code when an entity takes damage.
+- `EntityDmgEntity` — Executes code when an entity damages another entity.
+- `EntityExplode` — Executes code when an entity explodes.
+- `EntityHeal` — Executes code when an entity regains health.
+- `EntityKillEntity` — Executes code when an entity kills another entity.
+- `EntityResurrect` — Executes code when an entity resurrects with a totem of undying.
+- `FallingBlockLand` — Executes code when a falling block lands on the ground.
+- `ItemMerge` — Executes code when dropped items try to merge into a stack.
+- `NaturallySpawn` — Executes code when an entity spawns into the world naturally.
+- `ProjDmgEntity` — Executes code when a projectile damages an entity.
+- `ProjKillEntity` — Executes code when a projectile kills an entity.
+- `RegrowWool` — Executes code when a sheep regrows its wool.
+- `ShootBow` — Executes code when an entity shoots a bow.
+- `Teleport` — Executes code when an entity is teleported.
+- `Transform` — Executes code when an entity turns into another or group of others for any reason.
+- `VehicleDamage` — Executes code when a vehicle entity (minecart or boat) is damaged.
+
+## Game Events
+`game_event(...)` — 35 actions
+
+- `BeaconActivated` — Executes code when a beacon is activated.
+- `BellRing` — Executes code when a bell is rung.
+- `BlockBurn` — Executes code when a block is destroyed by fire.
+- `BlockCook` — Executes code when a block cooks an item.
+- `BlockDispense` — Executes code when a block dispenses an item.
+- `BlockExplode` — Executes code when a block explodes.
+- `BlockFade` — Executes code when a block fades.
+- `BlockFertilize` — Executes code when a block is fertilized.
+- `BlockForm` — Executes code when a block is formed, typically through natural means.
+- `BlockGrow` — Executes code when a block grows naturally.
+- `BlockIgnite` — Executes code when a block ignites.
+- `BlockMove` — Executes code when a block moves.
+- `BlockSpread` — Executes code when a block spreads.
+- `Brew` — Executes code when brewing completes.
+- `CampfireStart` — Executes code when a campfire starts cooking.
+- `CauldronChange` — Executes code when a cauldron's level or contents changes.
+- `ChunkLoad` — Executes code when a chunk is loaded.
+- `ChunkUnload` — Executes code when a chunk is unloaded.
+- `CrafterCraft` — Executes code when a crafter crafts an item.
+- `FluidLevelChange` — Executes code when a liquid's level changes.
+- `FurnaceBurn` — Executes code when a furnace consumes fuel.
+- `LagSlayRecover` — Executes code when a plot recovers from a LagSlayer halt.
+- `LeavesDecay` — Executes code when leaves decay.
+- `MoistureChange` — Executes code when soil moisture changes.
+- `NotePlay` — Executes code when a note block plays a note.
+- `PistonExtend` — Executes code when a piston extends.
+- `PistonRetract` — Executes code when a piston retracts.
+- `PlotShutdown` — Executes code when a plot no longer has players and is shutting down.
+- `PlotStartup` — Executes code when a plot is first started.
+- `Redstone` — Executes code when a redstone current changes.
+- `SculkBloom` — Executes code when a sculk catalyst blooms.
+- `SpongeAbsorb` — Executes code when a sponge absorbs water.
+- `TNTPrime` — Executes code when TNT is ignited.
+- `VaultChangeState` — Executes code when a vault changes its state.
+- `VaultDisplayItem` — Executes code when a vault displays an item.
+
+## Player Actions
+`PlayerAction(...)` — 208 actions
+
+- `ActionBar(comp...)` — Displays text directly above a player's hotbar.
+- `AddInvRow([item...])` — Adds a row to the bottom of a player's current inventory menu.
+- `AdventureMode` — Sets a player's game mode to Adventure.
+- `AllowDrops`
+- `AttackAnimation` — Makes a player perform an attack animation.
+- `BlockDisguise(block, [comp])` — Disguises a player as a block.
+- `BoostElytra(item)` — Boosts a player's elytra using a firework rocket.
+- `BossBar`
+- `ChatStyle(comp)` — Sets a player's chat color or decoration.
+- `ClearChat`
+- `ClearDispBlock(loc, [loc])` — Displays the real block at a location to a player, effectively removing any client-side blocks.
+- `ClearHighlighters`
+- `ClearInv` — Empties a player's inventory.
+- `ClearItems(item...)` — Removes all of an item from a player.
+- `ClearPotions` — Removes all active potion effects from a player.
+- `ClearScoreboard` — Removes all scores from the scoreboard.
+- `CloseInv` — Closes a player's inventory.
+- `CombatAttribute([num])` — Sets one of the player's combat-related attributes such as attack damage and attack speed.
+- `CreativeMode` — Sets a player's game mode to Creative.
+- `Damage(num, [txt])` — Damages a player.
+- `DeathDrops`
+- `DisableBlocks([block...])` — Prevents a player from placing and breaking certain blocks.
+- `DisableFlight`
+- `DisablePvp`
+- `DisallowDrops`
+- `DisguiseShiftVert(num)` — Shifts the disguise of a player up or down relative to the player.
+- `DispHeadTexture(loc, item, txt)` — Changes a head's texture at a location for a player.
+- `DisplayBellRing(loc)` — Displays a bell ring animation at a location to a player.
+- `DisplayBlock(block, loc, [loc], [blocktag...])` — Displays a block at a location to a player.
+- `DisplayBlockOpen(loc)` — Displays a container block at a location as being open or closed to a player.
+- `DisplayEquipment(txt, item...)` — Displays equipment on an entity to a player. Equipment goes from slots 2-7 in order of Helmet, Chestplate, Leggings, Boots, Main Hand, Off Hand.
+- `DisplayFracture(loc..., [num])` — Displays a block fracture effect at a location to a player.
+- `DisplayGateway(loc)` — Displays a vertical beam on an end gateway to a player.
+- `DisplayHighlighter`
+- `DisplayHologram(loc, comp)` — Displays a floating name tag at a location to a player.
+- `DisplayLightning(loc)` — Displays a lightning strike effect to a player.
+- `DisplayPickup(txt, txt)` — Displays a pickup animation of one entity being collected by another entity.
+- `DisplaySignText(loc, [comp...])` — Displays text on a sign to a player.
+- `EnableBlocks([block...])` — Allows a player to place and break certain blocks.
+- `EnableFlight`
+- `EnablePvp`
+- `ExpandInv([item...])` — Adds 3 more rows to a player's current inventory menu using the contents of the chest.
+- `FaceLocation(loc)` — Rotates a player to look toward a location without teleporting them.
+- `FallingAttribute([num])` — Sets one of the player's falling-related attributes, such as gravity and fall damage multiplier.
+- `ForceFlight`
+- `GetItemCooldown(var, item)` — Gets the remaining cooldown on an item type.
+- `GetTargetEntity`
+- `GiveExhaustion(num)` — Adds exhaustion to a player.
+- `GiveExp(num)` — Adds experience points or levels to a player.
+- `GiveFood(num)` — Adds food to a player.
+- `GiveItems(item..., [num])` — Gives a player all of the items in the chest.
+- `GivePotion(pot...)` — Gives one or more potion effects to a player.
+- `GiveRngItem`
+- `GiveSaturation(num)` — Adds saturation to a player.
+- `Heal(num)` — Restores a player's health.
+- `HealthAttribute([num])` — Sets one of the player's health-related attributes such as max health and armor defense points.
+- `HideDisguise`
+- `HurtAnimation([loc])` — Makes a player perform a hurt animation.
+- `InstantRespawn` — Sets if a player is instantly  respawned upon dying.
+- `KBAttribute([num])` — Sets one of the player's knockback-related attributes such as knockback resistance.
+- `KeepInv`
+- `Kick` — Kicks a player from the plot.
+- `L SetHealth`
+- `LaunchFwd(num)` — Launches a player forward or backward.
+- `LaunchProj(projectile, [loc], [comp], [num], [num])` — Launches a projectile from a player.
+- `LaunchToward(loc, [num])` — Launches a player toward or away from a location.
+- `LaunchUp(num)` — Launches a player up or down.
+- `LoadInv` — Loads a player's inventory.
+- `LockDisgRotation([num], [num])` — Locks a disguise's pitch or yaw values.
+- `Mimic(txt...)` — Disguises a player as another currently existing entity or player.
+- `MiningAttribute([num])` — Sets one of the player's mining-related attributes such as break speed and mining efficiency.
+- `MiscAttribute([num])` — Sets one of the player's miscellaneous attributes such as scale and burning time.
+- `MobDisguise(egg, [comp])` — Disguises a player as a mob.
+- `MovementAttribute([num])` — Sets one of the player's movement-related attributes, such as walking speed and jump height.
+- `NatRegen`
+- `NoDeathDrops`
+- `NoKeepInv`
+- `NoNatRegen`
+- `NoProjColl`
+- `OpenBlockInv(loc)` — Opens a container's inventory. Also works with crafting tables.
+- `OpenBook(item)` — Opens a written book menu for a player.
+- `OpenSign(loc)` — Opens a sign for a player. Also works with client-side signs.
+- `OpenTradeMenu(txt)` — Opens the trading menu of a villager.
+- `Particle(particle..., loc)` — Displays a particle effect to a player.
+- `ParticleCircle(particle, loc, [num])` — Displays a circle of particles to a player.
+- `ParticleCircleA(particle, loc, [num], [num])` — Displays an animated circle of particles to a player.
+- `ParticleCuboid(particle, loc, loc, [num])` — Displays a particle cuboid as a solid, hollow or wireframe shape to a player.
+- `ParticleCuboidA(particle, loc, loc, [num], [num])` — Displays an animated particle cuboid to a player.
+- `ParticleEffect`
+- `ParticleLine(particle, loc, loc, [num])` — Displays a line of particles between two locations to a player.
+- `ParticleLineA(particle, loc, loc, [num], [num])` — Displays an animated line of particles between two locations to a player.
+- `ParticleRay(particle, loc, vec, [num])` — Displays a ray of particles to a player.
+- `ParticleSphere(particle, loc, [num])` — Displays a sphere of particles at a location to a player.
+- `ParticleSpiral(particle, loc, [num], [num], [num], [num])` — Displays a spiral of particles at a location to a player.
+- `ParticleSpiralA(particle, loc, [num], [num], [num], [num], [num])` — Displays an animated spiral of particles to a player.
+- `PlayEntitySound(snd..., txt...)` — Plays a sound that follows a moving entity or player.
+- `PlayerDisguise(comp, [item])` — Disguises a player as another player.
+- `PlaySound(snd..., [loc])` — Plays a sound for a player.
+- `PlaySoundSeq(snd..., [num], [loc])` — Plays a sequence of sounds to a player, with a delay between each sound.
+- `ProjColl`
+- `PromptPurchase(txt)` — Prompts the player to purchase a plot product.
+- `ReachAttribute([num])` — Sets one of the player's reach-related attributes such as block and entity interaction ranges.
+- `RemoveBossBar`
+- `RemoveBossBar(num)` — Removes a boss health bar from a player's screen.
+- `RemoveInvRow([num])` — Removes the given number of rows from the bottom of a player's current inventory menu.
+- `RemoveItems(item...)` — Removes items from a player.
+- `RemovePotion(pot...)` — Removes one or more potion effects from a player.
+- `RemoveScore(comp)` — Removes a score from the scoreboard.
+- `ReplaceItems([item...], item, [num])` — Replaces items in a player's inventory with the given item.
+- `ReplaceProj`
+- `ResourcePack(txt)` — Send a resource pack to a player.
+- `Respawn`
+- `RideEntity(txt...)` — Mounts a player on top of another player or entity.
+- `RmWorldBorder` — Removes a player's world border.
+- `RngTeleport`
+- `RollbackBlocks([num])` — Undoes the interactions with blocks by a player.
+- `SaveInv` — Saves a player's inventory. It can be loaded later with 'Load Saved Inventory'.
+- `ScoreDefFormat(comp)` — Sets the default number format of the player's scoreboard.
+- `ScoreLineFormat(comp, comp)` — Sets the number format of a single line in the player's scoreboard.
+- `SendAdvancement(comp, [item])` — Displays a custom advancement popup to a player.
+- `SendAnimation`
+- `SendHover`
+- `SendMessage([comp...])` — Sends a chat message to a player.
+- `SendMessageSeq(comp..., [num])` — Sends a series of messages in chat to a player, with a delay after each message.
+- `SendTitle(comp, [comp], [num], [num], [num])` — Displays text in the center of a player's screen.
+- `SendToPlot(txt)` — Sends a player to another plot.
+- `SetAbsorption`
+- `SetAbsorption(num)` — Sets a player's absorption health (golden hearts).
+- `SetAirTicks(num)` — Sets a player's remaining breath ticks.
+- `SetAllowFlight` — Sets whether a player is able to enter and exit flight mode by double tapping jump.
+- `SetAllowPVP` — Sets whether a player can hurt or be hurt by other players.
+- `SetArmor(item...)` — Sets a player's armor items. Place the armor in slots 1-4 of the chest, with 1 being the helmet and 4 being the boots.
+- `SetArrowsStuck([num])` — Sets the amount of arrows sticking out of a player's character model.
+- `SetAtkSpeed`
+- `SetBossBar([comp], [num], [num], [num])` — Creates or modifies a custom boss health bar at the top of a player's screen.
+- `SetChatTag(comp...)` — Sets a player's chat tag.
+- `SetCollidable` — Sets whether a player is able to collide with other entities.
+- `SetCompass(loc)` — Sets the location compasses point to for a player.
+- `SetCursorItem(item)` — Sets the item on a player's cursor.
+- `SetDisguiseVisible` — Sets a player's ability to see their own disguise. It is recommended that it is almost always hidden.
+- `SetDropsEnabled` — Sets whether a player drops their items when dead.
+- `SetEntityHidden(txt...)` — Sets if an entity is hidden to a target.
+- `SetEquipment([item])` — Sets the item in one of the equipment slots (armor and held items) of a player.
+- `SetExhaustion(num)` — Sets a player's exhaustion level.
+- `SetExp(num)` — Sets a player's experience level, points or progress.
+- `SetFallDistance(num)` — Sets a player's fall distance, affecting fall damage upon landing.
+- `SetFireTicks(num)` — Sets the remaining time a player is on fire for.
+- `SetFlying` — Sets whether a player is flying.
+- `SetFogDistance(num)` — Sets how far the fog is displayed to a player.
+- `SetFoodLevel(num)` — Sets a player's food hunger level.
+- `SetFreezeTicks(num)` — Sets how long a player is frozen for.
+- `SetGamemode`
+- `SetGliding` — Sets whether a player is gliding with elytra.
+- `SetHandCrafting` — Sets if a player is allowed to interact with their hand-crafting menu.
+- `SetHandItem`
+- `SetHealth(num)` — Sets a player's current health.
+- `SetHotbar(item...)` — Sets items in a player's hotbar.
+- `SetInventory(item...)` — Sets items in a player's upper inventory.
+- `SetInventoryKept` — Sets whether a player's inventory is kept after death.
+- `SetInvName(comp)` — Renames a player's current inventory menu.
+- `SetInvName`
+- `SetInvulTicks(num)` — Sets the currently remaining ticks until a player can next be hurt.
+- `SetItemCooldown(item, num)` — Applies a cooldown visual effect to an item type.
+- `SetItems`
+- `SetMaxHealth(num)` — Sets a player's maximum health.
+- `SetMenuItem(num, [item])` — Sets the item in a slot of a player's current inventory menu.
+- `SetNameColor` — Sets the color a player's name tag appears in.
+- `SetNamePrefix([comp])` — Sets the prefix or suffix for the player's name.
+- `SetNameVisible` — Sets whether a player's name tag is visible.
+- `SetPlayerTime(num)` — Sets the time of day visible to a player.
+- `SetPlayerWeather` — Sets the type of weather visible to a player.
+- `SetRainLevel(num, num)` — Sets the heaviness of rain and storm visible to a player.
+- `SetReducedDebug` — When enabled, a player won't be able to see their coordinates, block info, or other info.
+- `SetRotation(num, num)` — Changes a player's pitch and yaw.
+- `SetSaturation(num)` — Sets a player's saturation level.
+- `SetScore(comp, [num])` — Sets a score on the scoreboard.
+- `SetScoreObj(comp)` — Sets the objective name of the scoreboard sidebar.
+- `SetShoulder` — Displays a parrot on the targets' shoulders.
+- `SetSidebar` — Sets whether the scoreboard sidebar is visible to a player.
+- `SetSkin(item)` — Sets the player's skin.
+- `SetSlot(num)` — Sets a player's selected hotbar slot.
+- `SetSlotItem([item], num)` — Sets the item in a slot of a player's inventory.
+- `SetSpawnPoint(loc)` — Sets the location a player will spawn when they die and respawn.
+- `SetSpeed`
+- `SetStatus(comp)` — Sets the player's game status, which is used to display information about what the player is doing in the game.
+- `SetStingsStuck([num])` — Sets the amount of bee stings sticking out of a player's character model.
+- `SetTabListInfo([comp...])` — Sets the text to be displayed above or below a player's player list shown when pressing Tab.
+- `SetTickRate([num])` — Changes the tick rate of a player.
+- `SetVelocity(vec)` — Sets a player's movement velocity.
+- `SetVisualFire` — Sets whether a player should appear on fire.
+- `SetWorldBorder(loc, num, [num])` — Creates a world border only visible to a player.
+- `SetXPProg`
+- `ShiftWorldBorder(num, [num])` — Changes a player's world border size if they have one active.
+- `ShowDisguise`
+- `ShowInv([item...])` — Opens a custom inventory for a player.
+- `SpectateTarget(txt)` — Makes a player spectate another player or entity.
+- `SpectatorCollision` — Toggles whether a player collides with blocks in spectator mode.
+- `SpectatorMode` — Sets a player's game mode to Spectator.
+- `StopSound([snd...])` — Stops all or specific sounds for a player.
+- `SurvivalMode` — Sets a player's game mode to Survival.
+- `Teleport(loc)` — Teleports a player to a location.
+- `TpSequence`
+- `Undisguise` — Removes a player's disguise.
+- `Vibration`
+- `WakeUpAnimation` — Displays the wake up (fade in) animation to a player.
+- `WalkSpeed`
+- `WeatherClear`
+- `WeatherRain`
+
+## Entity Actions
+`EntityAction(...)` — 205 actions
+
+- `AddVillagerTrade(item, item, [item], [num])` — Adds a trade to a villager.
+- `ArmorStandParts` — Sets whether an armor stand has arms and a base plate.
+- `ArmorStandPose(vec, [num], [num], [num])` — Sets the rotation of an armor stand part.
+- `ArmorStandSlots` — Sets the possible interactions, such as adding or removing items, of an armor stand's slot(s).
+- `ArmorStandTags`
+- `AttachLead(txt, loc)` — Attaches a lead to the target, held by an entity or lead knot.
+- `AttackAnimation` — Makes a mob perform an attack animation.
+- `BDisplayBlock(block, [blocktag...])` — Sets the displayed block of a block display.
+- `BlockDisguise(block, [comp])` — Disguises an entity as a block.
+- `ClearPotions` — Removes all active potion effects from an entity.
+- `ClrVillagerTrades` — Removes all trades from a villager.
+- `CombatAttribute([num])` — Sets one of the entity's combat-related attributes such as attack damage and attack speed.
+- `CreeperCharged` — Sets whether a creeper has the charged effect.
+- `Damage(num, [txt])` — Damages a mob.
+- `DisableGlowing`
+- `DisguiseShiftVert(num)` — Shifts the disguise of an entity up or down relative to the entity itself.
+- `DispInterpolation([num], [num])` — Sets the interpolation properties of a display entity.
+- `DisplayBillboard` — Sets how a display entity is rotated with a player's view.
+- `DisplayBrightness(num, num)` — Sets the brightness of a display entity.
+- `DisplayCullingSize([num], [num])` — Sets the culling width and height of a display entity.
+- `DisplayGlowColor(txt)` — Sets the glowing color of a display entity.
+- `DisplayMatrix(list)` — Sets the affine transformation matrix of a display entity.
+- `DisplayScale(num, num, num, vec)` — Sets the scale of a display entity.
+- `DisplayShadow([num], [num])` — Sets the shadow properties of a display entity.
+- `DisplayViewRange([num])` — Sets the view range of a display entity.
+- `DispRotationEuler(num, num, num, vec)` — Sets the left or right rotation of a display entity from 3 angles on each axis.
+- `DispRotAxisAngle(vec, num)` — Sets the left or right rotation of a display entity from axis-angle rotation.
+- `DispTPDuration([num])` — Sets how long a display entity takes to visually move to its destination when it teleports.
+- `DispTranslation(num, num, num, vec)` — Sets the translation values of a display entity.
+- `DropItems`
+- `EnableAI`
+- `EnableGlowing`
+- `EndCrystalBeam([loc])` — Sets the location an end crystal points its beam at.
+- `Explode` — Causes an entity to explode.
+- `FaceLocation(loc)` — Rotates an entity to look toward a location without teleporting them.
+- `FallingAttribute([num])` — Sets one of the entity's falling-related attributes, such as gravity and fall damage multiplier.
+- `FoxSleeping` — Causes a fox to start or stop sleeping.
+- `FrogEat(txt)` — Makes a frog try to eat the specified mob or player.
+- `GetAllEntityTags(var)` — Gets all tags registered on an entity.
+- `GetCustomTag(var, txt)` — Gets the value of a custom entity tag.
+- `GivePotion(pot...)` — Gives one or more potion effects to an entity.
+- `Gravity`
+- `Heal(num)` — Restores a mob's health.
+- `HealthAttribute([num])` — Sets one of the entity's health-related attributes such as max health and armor defense points.
+- `HideName`
+- `IDisplayItem(item)` — Sets the displayed item of an item display.
+- `IDisplayModelType` — Sets the model type of an item display.
+- `IgniteCreeper` — Ignites a creeper, causing it to explode after a fuse period.
+- `InteractionSize([num], [num])` — Sets the hitbox size of an interaction entity.
+- `InteractResponse` — Sets whether an interaction entity has response when interacting with it.
+- `Jump` — Causes a mob to jump.
+- `KBAttribute([num])` — Sets one of the entity's knockback-related attributes such as knockback resistance.
+- `L SetArmor`
+- `LaunchFwd(num)` — Launches an entity forward or backward.
+- `LaunchProj(projectile, [loc], [comp], [num], [num])` — Launches a projectile from a mob.
+- `LaunchToward(loc, [num])` — Launches an entity toward or away from a location.
+- `LaunchUp(num)` — Launches an entity up or down.
+- `LockDisgRotation([num], [num])` — Locks a disguise's pitch or yaw values.
+- `MannequinDesc([comp])` — Sets a mannequin's description.
+- `MannequinHand` — Sets a mannequin's main hand.
+- `MannequinLayers` — Sets a mannequin's skin layers.
+- `MannequinMovable` — Sets whether a mannequin is movable.
+- `MannequinSkin(item, txt)` — Sets a mannequin's skin avatar.
+- `Mimic(txt...)` — Disguises an entity as another currently existing entity or player.
+- `MiscAttribute([num])` — Sets one of the entity's miscellaneous attributes such as scale and burning time.
+- `MobDisguise(egg, [comp])` — Disguises an entity as a mob.
+- `MooshroomType` — Sets a mooshroom's skin type.
+- `MovementAttribute([num])` — Sets one of the entity's movement-related attributes, such as walking speed and jump height.
+- `MoveTo`
+- `MoveToLoc(loc, num)` — Instructs a mob's AI to always pathfind to a certain location at a certain speed.
+- `NoAI`
+- `NoDrops`
+- `NoGravity`
+- `NoProjColl`
+- `PlayerDisguise(comp, [item])` — Disguises an entity as a player.
+- `ProjColl`
+- `ProjectileItem(item)` — Sets the item a projectile displays as.
+- `Ram(txt)` — Makes a goat ram the specified mob or player.
+- `Remove` — Deletes an entity.
+- `RemoveCustomTag(txt)` — Removes a custom tag from an entity.
+- `RemovePotion(pot...)` — Removes one or more potion effects from an entity.
+- `RemVillagerTrade(num)` — Removes a trade from a villager
+- `RestockTrades` — Restocks all of a villager's trades.
+- `RideEntity(txt...)` — Mounts an entity on top of another entity or player.
+- `SendAnimation` — Makes a mob perform an animation.
+- `SetAbsorption(num)` — Sets an entity's absorption health (golden hearts).
+- `SetAge(num)` — Sets an animal's age.
+- `SetAge/Size`
+- `SetAI` — Sets whether an entity is sentient and/or affected by physics.
+- `SetAllayDancing` — Sets whether an allay is dancing or not.
+- `SetAngry` — Sets whether a mob is angry at players.
+- `SetArmor(item...)` — Sets a mob's armor items. Place the armor in slots 1-4 of the chest, with 1 being the helmet and 4 being the boots.
+- `SetArmsRaised` — Sets whether a mob has its arms raised.
+- `SetArrowDamage(num)` — Sets the base damage dealt by an arrow or trident.
+- `SetArrowHitSound(snd)` — Sets the sound an arrow plays whenever it lands.
+- `SetArrowNoClip` — Sets whether an arrow will pass through blocks and through entities.
+- `SetArrowPierce(num)` — Sets how many targets an arrow can pierce through. A pierce of 1 can hit up to 2 entities.
+- `SetAxolotlColor` — Sets an axolotl's color.
+- `SetBaby` — Sets whether an entity is a baby (permanently).
+- `SetBeeNectar` — Sets if a bee has nectar on its body.
+- `SetBeeStinger` — Sets whether a bee has its stinger.
+- `SetBulletTarget(txt)` — Causes a shulker bullet to start targeting the provided entity.
+- `SetCarryingChest` — Sets whether a mob carries a chest, which allows its inventory to be accessed.
+- `SetCatResting` — Sets whether a cat appears to be lying down.
+- `SetCatType` — Sets a cat's skin type.
+- `SetCelebrating` — Causes a mob to start or stop celebrating.
+- `SetCloudRadius(num, [num])` — Sets an area of effect cloud's radius and shrinking speed.
+- `SetCollidable` — Sets whether a mob is able to collide with other entities.
+- `SetCreeperFuse(num)` — Sets the starting amount of ticks it takes for a creeper to explode.
+- `SetCreeperPower(num)` — Sets a creeper's explosion power. This affects the damage and area of effect.
+- `SetCustomTag(txt, num, txt)` — Sets the value of or creates a custom tag value.
+- `SetDeathDrops` — Sets whether a mob drops their items when dead.
+- `SetDigging` — Makes a warden emerge or dig into the ground.
+- `SetDragonPhase` — Sets the behavior phase of an Ender Dragon.
+- `SetDyeColor` — Sets a mob's dye color.
+- `SetEndermanBlock(block)` — Set an enderman's held block.
+- `SetEquipment([item])` — Sets the item in one of the equipment slots (including horse items) of an entity.
+- `SetFallDistance(num)` — Sets an entity's fall distance, affecting fall damage upon landing.
+- `SetFireTicks(num)` — Sets the remaining time an entity is on fire for.
+- `SetFishingTime(num)` — Sets the time until a fish starts to approach a fishing hook.
+- `SetFishPattern` — Sets a tropical fish's color and pattern.
+- `SetFoxLeaping` — Sets whether a fox appears to be leaping.
+- `SetFoxType` — Sets a fox's fur type.
+- `SetFreezeTicks(num)` — Sets an entity's current freeze ticks.
+- `SetFriction` — Changes the type of friction an entity experiences.
+- `SetFrogType`
+- `SetGliding` — Sets whether an entity is gliding.
+- `SetGlowing` — Sets whether this entity has a glowing outline that can be seen through blocks.
+- `SetGlowSquidDark(num)` — Sets the number of ticks a glow squid will stop glowing for.
+- `SetGoatHorns` — Sets which goat horns are shown or hidden.
+- `SetGoatScreaming` — Sets whether a goat screams or not.
+- `SetGravity` — Sets whether an entity is affected by gravity.
+- `SetHandItem`
+- `SetHealth(num)` — Sets an entity's current health.
+- `SetHorseJump(num)` — Sets a horse's jump strength.
+- `SetHorsePattern` — Sets a horse's color and pattern.
+- `SetInvisible` — Sets whether an entity is invisible.
+- `SetInvulnerable` — Sets whether an entity is invulnerable to damage.
+- `SetInvulTicks(num)` — Sets the currently remaining ticks until an entity can next be hurt.
+- `SetItem(item)` — Sets the item of an item entity.
+- `SetItemOwner`
+- `SetLlamaColor` — Sets a llama's fur color.
+- `SetMarker` — Sets whether an armor stand is a marker.
+- `SetMaxHealth(num)` — Sets an entity's maximum health.
+- `SetMinecartBlock(block, [num])` — Sets the block shown inside a minecart. This does not affect its functionality.
+- `SetMobSitting` — Sets whether an entity is sitting.
+- `SetMoveSpeed`
+- `SetName(comp)` — Sets an entity's custom name.
+- `SetName`
+- `SetNameColor` — Sets the color an entity's name tag appears in.
+- `SetNameVisible` — Sets whether an entity's custom name is always displayed above them.
+- `SetNameVisible`
+- `SetPandaGene` — Sets the gene of a panda. This affects their behavior and appearance.
+- `SetPandaOnBack` — Sets whether a panda is laying on its back or not.
+- `SetPandaRolling` — Sets whether a panda is rolling or not.
+- `SetPandaSadTicks(num)` — Makes a panda sad for the specified duration.
+- `SetParrotColor` — Sets a parrot's color.
+- `SetPersistent` — Sets whether an item or a falling block will never despawn.
+- `SetPickupDelay(num)` — Sets the number of ticks a dropped item cannot be picked up for.
+- `SetPose` — Changes the pose of an entity. This affects their animations and/or hitbox, depending on the pose and entity type.
+- `SetProfession` — Sets a villager's profession.
+- `SetProjSource(txt)` — Sets the projectile source of a projectile (or removes it).
+- `SetRabbitType` — Sets a rabbit's skin type.
+- `SetRearing` — Sets whether a horse is standing on its hind legs.
+- `SetRiptiding` — Sets whether an entity is riptiding.
+- `SetRotation(num, num)` — Changes an entity's pitch and yaw without teleporting it.
+- `SetSaddle` — Sets whether a mob wears a saddle.
+- `SetSalmonType` — Sets a salmon's variant.
+- `SetSheepSheared` — Sets whether a sheep has its wool.
+- `SetShulkerPeek(num)` — Sets how far a shulker should peek up to.
+- `SetSilenced` — Sets whether an entity will produce sound effects.
+- `SetSize(num)` — Sets the size of an entity. This may also affect its health and strength.
+- `SetTarget(txt...)` — Instructs a mob's AI to target a specific mob or player.
+- `SetTemperature` — Sets a mob's temperature variant.
+- `SetTradeUses(num, [num], [num])` — Sets the amount of times a trade can be made before the villager has to restock.
+- `SetVelocity(vec)` — Sets an entity's movement velocity.
+- `SetVexCharging` — Sets whether a vex is charging or not.
+- `SetVillagerBiome` — Sets the biome type of a villager. This affects their appearance only.
+- `SetVillagerExp(num)` — Sets a villager's experience points, which affects their level.
+- `SetVillagerTrade(num, item, item, [item], [num])` — Sets the villager trade at an index.
+- `SetVisualFire` — Sets whether an entity should appear on fire.
+- `SetWardenAnger(num, txt)` — Sets the anger level of a Warden.
+- `SetWitherInvul(num)` — Sets the remaining ticks of invulnerability a wither has.
+- `SetWolfSoundType` — Sets a wolf's sound variant.
+- `SetWolfType` — Sets a wolf's variant.
+- `Shear` — Sets a mob in the sheared state.
+- `ShearSheep` — Causes a sheep to be sheared.
+- `SheepEat` — Causes a sheep to eat grass.
+- `ShowName`
+- `Silence`
+- `SnifferState` — Forces a sniffer to perform a specific action.
+- `SnowmanPumpkin` — Sets whether a snow golem is wearing a pumpkin.
+- `Tame(txt)` — Tames and sets the owner of a tameable mob.
+- `TDispBackground(txt, num)` — Sets the background color and opacity of a text display.
+- `TDisplayAlign` — Sets the text alignment of a text display.
+- `TDisplayLineWidth([num])` — Sets the maximum line width of a text display.
+- `TDisplayOpacity([num])` — Sets the text opacity of a text display.
+- `TDisplaySeeThru` — Sets whether a text display is visible through walls or not.
+- `TDisplayShadow` — Sets whether the text in a text display has shadow or not.
+- `TDisplayText(comp...)` — Sets the displayed text of a text display.
+- `Teleport(loc)` — Teleports an entity to a specified location.
+- `Undisguise` — Removes an entity's disguise.
+- `Unsilence`
+- `UseItem` — Forces a mob to use held items such as bow or spyglass.
+- `VillagerHeadAnim` — Makes a villager perform a head shake animation.
+
+## Game Actions
+`GameAction(...)` — 102 actions
+
+- `AdvanceTime` — Sets if this world has a natural time cycle.
+- `AdvanceWeather` — Sets if this world has a natural weather cycle.
+- `ApplyTransaction` — Applies the current transaction and generates a new one.
+- `BlockDropsOff` — Disables blocks dropping as items when broken.
+- `BlockDropsOn` — Enables blocks dropping as items when broken.
+- `BoneMeal(loc..., [num])` — Applies bone meal to a block.
+- `BreakBlock(loc...)` — Breaks the block at a location as if it was broken by a player.
+- `CancelEvent` — Cancels the initial event that triggered this line of code.
+- `ChangeSign(loc, num, [comp])` — Changes a line of text on a sign.
+- `ClearContainer(loc)` — Empties a container at a location.
+- `ClearItems(loc, item...)` — Removes all of an item from the container at a location.
+- `ClearScBoard`
+- `CloneRegion(loc, loc, loc, loc)` — Copies a region of blocks to another region, including air.
+- `CreateHologram`
+- `DebugStackTrace`
+- `DiscordWebhook(txt, txt)` — Sends a message to a Discord webhook.
+- `Explosion(loc, [num])` — Creates an explosion at a location.
+- `FallingBlock(loc, block, [blocktag...])` — Spawns a falling block at a location.
+- `FillContainer(loc, item...)` — Fills the container at a location with items.
+- `FireSpreadRadius(num)` — Sets the radius fire spreads around a player.
+- `Firework(item, loc)` — Launches a firework rocket at a location.
+- `FireworkEffect`
+- `GenerateTree(loc)` — Generates a tree at a location.
+- `HideSidebar`
+- `L PFX Spiral`
+- `LaunchProj(projectile, loc, [comp], [num], [num])` — Launches a projectile.
+- `Lightning(loc)` — Strikes lightning at a location.
+- `LockContainer(loc, txt)` — Sets the lock key of the container at a location.
+- `MobSpawning` — Sets if this world spawns mobs.
+- `ParticleCircle`
+- `ParticleCircleA`
+- `ParticleCluster`
+- `ParticleEffect`
+- `ParticleLine`
+- `ParticleLineA`
+- `ParticleRay`
+- `ParticleSphere`
+- `ParticleSpiral`
+- `ParticleSpiralA`
+- `PFX Line [A]`
+- `PFX Path`
+- `RandomTickSpeed(num)` — Sets the random tick speed  in the world.
+- `RedstoneStrength(num)` — Sets the current strength in this event.
+- `RemoveHologram`
+- `RemoveItems(loc, item...)` — Removes items from the container at a location.
+- `RemoveScore`
+- `ReplaceItems(loc, [item...], item, [num])` — Replaces items in the container at a location with the given item.
+- `SetBiome(loc, loc, txt)` — Sets the biome of a region.
+- `SetBlock(block, loc..., [blocktag...])` — Sets the block at a location.
+- `SetBlockData(loc..., blocktag...)` — Sets a data tag value of the block at a location.
+- `SetBlockGrowth(loc, [num])` — Sets the growth stage of the block (eg. carrots) at a location.
+- `SetBrushableItem(loc, [item])` — Sets the item buried in a suspicious sand or gravel.
+- `SetCampfireItem(loc, item, [num])` — Sets the item being cooked in one of a campfire's slots.
+- `SetContainer(loc, item...)` — Sets the contents of the container at a location.
+- `SetContainerName(loc, comp)` — Sets the name of the container at a location.
+- `SetDisplayedItem(item)` — Sets the item displayed in this event.
+- `SetEventDamage(num)` — Sets the damage dealt in this event.
+- `SetEventDeathMsg(comp)` — Sets the death message in this event.
+- `SetEventHeal(num)` — Sets the amount of health regained in this event.
+- `SetEventProj([projectile])` — Replaces the projectile fired in the Shoot Bow Event.
+- `SetEventSound(snd)` — Sets the sound to play for this event, replacing the original sound.
+- `SetEventXP(num)` — Sets the amount of experience this event should drop.
+- `SetExhaustion(num)` — Sets the exhaustion  gained in this event.
+- `SetFurnaceSpeed(loc, num)` — Sets the amount of ticks it takes for a furnace block to cook an item.
+- `SetHead(loc, item, txt)` — Sets the block at a location to a player head.
+- `SetItemInSlot(loc, [item], num)` — Sets the item in a slot of the container at a location.
+- `SetLecternBook(loc, [item], [num])` — Sets the book and the displayed page of a Lectern.
+- `SetRegion(block, loc, loc, [blocktag])` — Fills a region with a type of block.
+- `SetScObj`
+- `SetScore`
+- `SetWorldTime(num)` — Sets the time in the world.
+- `ShowSidebar`
+- `ShulkerBullet(loc)` — Spawns a shulker bullet at a location.
+- `SignColor(loc)` — Changes the text color of a sign.
+- `SimulationDistance(num)` — Sets the simulation distance in the world.
+- `SpawnArmorStand(loc, [comp], [item...])` — Spawns an armor stand at a location.
+- `SpawnBlockDisp(loc, block, [blocktag...])` — Spawns a block display entity.
+- `SpawnCrystal(loc, [comp])` — Spawns an end crystal at a location.
+- `SpawnEnderEye(loc, [loc], [num], [comp])` — Spawns an eye of ender at a location, which (if specified) will float towards its destination.
+- `SpawnExpOrb(loc, [num], [comp])` — Spawns an experience orb at a location.
+- `SpawnFangs(loc, [comp])` — Spawns evoker fangs at a location.
+- `SpawnInteraction(loc, [num], [num])` — Spawns an invisible hitbox with the specified size.
+- `SpawnItem(item..., loc, [comp])` — Spawns an item at a location.
+- `SpawnItemDisp(loc, item)` — Spawns an item display entity.
+- `SpawnItemDisplay`
+- `SpawnMannequin(item, txt, loc, [comp])` — Spawns a mannequin at a location.
+- `SpawnMob(egg, loc, [num], [comp], [pot...], [item...])` — Spawns a mob at a location.
+- `SpawnPotionCloud(loc, [pot...], [comp], [num], [num])` — Spawns a lingering potion cloud at a location that imbues effects onto entities who enter it.
+- `SpawnRngItem`
+- `SpawnTextDisplay(loc, comp...)` — Spawns a text display entity.
+- `SpawnTNT(loc, [num], [num], [comp])` — Spawns primed TNT at a location.
+- `SpawnVehicle(vehicle, loc, [comp])` — Spawns a vehicle at a location.
+- `StartLoop`
+- `StopLoop`
+- `TickBlock(loc..., [num])` — Causes a block to get "random ticked", which could cause a block update.
+- `TraderSpawning` — Sets if this world spawns wandering traders.
+- `UncancelEvent` — Uncancels the initial event that triggered this line of code.
+- `ViewDistance(num)` — Sets the view distance in the world.
+- `VineSpreading` — Sets if this world spreads vines.
+- `Wait`
+- `WebRequest(txt, [txt])` — Sends a web request to a URL.
+- `WriteTransaction(block, loc, loc, [blocktag])` — Adds blocks to the next transaction; a method of queuing up block operations so that they can be sent simultaneously.
+
+## Set Variable (data, math, text, lists, dicts, I/O)
+`SetVar(...)` — 326 actions
+
+- `%(var, num, num)` — Sets a variable to the remainder after dividing two numbers with a whole quotient.
+- `+(var, num...)` — Sets a variable to the sum of the given numbers.
+- `+=(var, [num...])` — Increments a number variable by 1 or more other numbers.
+- `-(var, num...)` — Sets a variable to the difference between the given numbers.
+- `-=(var, [num...])` — Decrements a number variable by 1 or more other numbers.
+- `/(var, num...)` — Sets a variable to the quotient of the given numbers.
+- `=(var, any)` — Sets a variable to a value.
+- `AbsoluteValue(var, [num])` — Makes a number positive if it is negative.
+- `AddBannerLayer(var, [item], [num])` — Adds a pattern layer to a banner or a shield.
+- `AddItemAttribute(var, [item], num)` — Adds an attribute modifier to an item, which is active in a certain equipment slot.
+- `AddItemEnchant(var, [item], txt, num)` — Adds an enchantment to an item.
+- `AddItemLore(var, [item], comp...)` — Adds lines to an item's lore.
+- `AddItemToolRule(var, [item], num, block..., txt)` — Adds a rule for breaking blocks to a tool item.
+- `AddVectors(var, vec...)` — Sets a variable to the sum of the given vectors.
+- `AlignLoc(var, [loc])` — Aligns a location to the center or corner of the block it is in.
+- `AlignVector(var, [vec])` — Aligns a vector to the nearest axis.
+- `AllRegexGroups(var, txt, txt)` — Gets a list of all capture groups in a Regex match.
+- `AllRegexMatches(var, txt, txt)` — Gets a list of every Regex match in the given string.
+- `AppendDict(var, dict)` — Adds all entries from one dictionary into the other.
+- `AppendList(var, list...)` — Adds a list to the end of another list variable.
+- `AppendValue(var, any...)` — Adds a value to the end of a list variable.
+- `ArcTangent2(var, num, num)` — Sets a variable to the arc tangent of 2 numbers.
+- `Average(var, num...)` — Sets a variable to the average of the given numbers.
+- `Base64Decode(var, byte...)` — Decodes Base64-encoded bytes as a list of numbers.
+- `Base64Encode(var, byte...)` — Encodes bytes as a list of numbers to Base64.
+- `Bitwise(var, num, [num])` — Sets a variable to the result of a bitwise operation.
+- `BlockHardness(var, item, loc)` — Gets a block's hardness value.
+- `BlockResistance(var, item, loc)` — Gets a block's blast resistance.
+- `BounceNum(var, [num], num, num)` — Checks if a number is inside the bounds and if not, bounces it towards the other bound.
+- `BytesToString(var, byte...)` — Converts a list of numbers representing bytes to a string.
+- `CellularNoise(var, loc, [num], [num], [num], [num], [num], [num], [num], [num], [num], [num], [num])` — Gets cellular noise: A type of noise based on distance from cell origins.
+- `ClampLoc(var, [loc], loc, loc)` — Clamps a location to a region defined by 2 corners.
+- `ClampNumber(var, [num], num, num)` — Checks if a number is between a minimum and maximum value, and if not, sets it to the nearest.
+- `ClampVector(var, [vec], vec, vec)` — Clamps a vector to a region defined by 2 vectors
+- `ClearDict(var)` — Removes all entries from a dictionary.
+- `ClearEnchants(var, [item])` — Removes enchantments from an item.
+- `ClearFormatting(var, [comp])` — Clears all formatting from the given styled text.
+- `ClearItemAttrs(var, [item])` — Clears all attributes from an item.
+- `ClearItemTag(var, [item])` — Removes all item custom tags.
+- `ClrBannerLayers(var, [item])` — Clears all pattern layers from a banner or a shield.
+- `ContainerLock(var, loc)` — Gets a container's lock key at a location.
+- `ContainerName(var, loc)` — Gets a container's name at a location.
+- `ContentLength(var, comp)` — Gets the number of characters a styled text has, ignoring all formatting tags.
+- `Cosine(var, num)` — Sets a variable to the trigonometric cosine function of a number.
+- `CreateDict(var, [list], [list])` — Creates a dictionary with the given keys and values.
+- `CreateList(var, [any...])` — Creates a list from the given values.
+- `CrossProduct(var, vec, vec)` — Sets a variable to the cross product of two vectors.
+- `DecimalRGB(var, txt)` — Converts a hex code to a packed RGB integer.
+- `DedupList(var, [list])` — Removes list elements that appear more than once.
+- `DestructureList(list, var...)` — Splits a list into separate variables.
+- `DirectionName(var, vec)` — Sets a variable to the name of the direction of a vector.
+- `Distance(var, loc, loc)` — Sets a variable to the distance between two locations.
+- `DotProduct(var, vec, vec)` — Sets a variable to the dot product of two vectors.
+- `Exponent(var, [num], [num])` — Raises a number to the power of an exponent.
+- `FaceLocation(var, [loc], loc)` — Sets a location's rotation to face another location.
+- `FlattenList(var, [list])` — Sets a variable to a list with its sub-lists spread out into individual elements.
+- `FormatTime(var, num, [txt])` — Converts a numerical timestamp to a human-readable time/date text using a date format.
+- `GetAllBlockData(var, loc)` — Gets the block state tags at a location.
+- `GetAllItems(var)` — Gets a list of every minecraft item material
+- `GetAllItemTags(var, item)` — Gets all tags registered on an item.
+- `GetBlockByMCTag(var, txt)` — Gets a list of blocks that belongs to the specified block tag.
+- `GetBlockData(var, loc, txt)` — Gets a block state tag value at a location.
+- `GetBlockDrops(var, loc, [item])` — Gets the items dropped by a block if mined by a given tool.
+- `GetBlockGrowth(var, loc)` — Gets a block's current growth at a location.
+- `GetBlockPower(var, loc)` — Gets a block's redstone power level.
+- `GetBlockShape(var, loc)` — Gets a block collision shape at a location.
+- `GetBlockSound(var, block)` — Gets the sound for a block sound group.
+- `GetBlockType(var, loc)` — Gets a block's material at a location.
+- `GetBookText(var, item, num)` — Gets a book's text.
+- `GetBookText`
+- `GetBreakSound(var, item)` — Gets which sound an item makes when it breaks.
+- `GetBucketVar(var, var, txt, txt, [txt])` — Loads the value of a specific variable from a given bucket.
+- `GetBucketVars(var, var, txt, txt, txt...)` — Loads the values of specific variables from a given bucket.
+- `GetBundleItems(var, item)` — Gets the contents of a bundle.
+- `GetCanDestroy(var, item)` — Gets which blocks an item can break in Adventure Mode.
+- `GetCanPlaceOn(var, item)` — Gets which blocks an item can be placed on in Adventure Mode.
+- `GetCenterLoc(var, loc...)` — Finds an average position (center) of the given locations.
+- `GetColorChannels(var, txt)` — Gets a color's RGB/HSB/HSL number values as a list.
+- `GetConsumable(var, item)` — Gets an item's consumable property.
+- `GetContainerItems(var, loc)` — Gets a container's contents at a location.
+- `GetContainerName`
+- `GetCoord(var, loc)` — Gets a location's X, Y, Z, pitch, or yaw coordinate.
+- `GetCrossbowProj(var, item)` — Gets a crossbow's loaded projectile list.
+- `GetCustomSound(var, snd)` — Gets the key of a custom sound.
+- `GetDictKeys(var, dict)` — Gets the list of keys in this dictionary.
+- `GetDictSize(var, dict)` — Gets the number of entries in a dictionary.
+- `GetDictValue(var, dict, txt)` — Get a dictionary variable's value for a key.
+- `GetDictValues(var, dict)` — Gets the list of values in this dictionary.
+- `GetDirection`
+- `GetDirection(var, loc)` — Gets a location's rotation (pitch and yaw) as a direction.
+- `GetHeadOwner(var, item)` — Gets a player head's owner name or UUID.
+- `GetItemAmount(var, item)` — Gets an item's stack size.
+- `GetItemAttribute(var, item)` — Get an attribute's multiplier for a specific slot.
+- `GetItemByMCTag(var, txt)` — Gets a list of items that belongs to the specified item tag.
+- `GetItemColor(var, item)` — Gets a colorable item's color.
+- `GetItemDura(var, item)` — Gets an item's current or maximum durability.
+- `GetItemEffects(var, item)` — Gets the potion effects applied by an item.
+- `GetItemEnchants`
+- `GetItemEnchants(var, item)` — Gets an item's enchantments.
+- `GetItemLeftover(var, item)` — Gets an item's leftover item that gets replaced on use, e.g. drinking stew gives a bowl.
+- `GetItemLore`
+- `GetItemLore(var, item)` — Gets an item's lore list.
+- `GetItemLoreLine`
+- `GetItemModel(var, item)` — Gets an item's model.
+- `GetItemName(var, item)` — Gets an item's name.
+- `GetItemName`
+- `GetItemRarity(var, item)` — Gets an item's rarity.
+- `GetItemTag(var, item, txt)` — Gets the value of a custom item tag.
+- `GetItemType(var, item)` — Gets an item's material.
+- `GetItemWeapon(var, item)` — Gets an item's weapon property.
+- `GetLecternBook(var, loc)` — Gets the book on the Lectern at a location.
+- `GetLecternPage(var, loc)` — Gets the displayed page number of a Lectern.
+- `GetLight(var, loc)` — Gets the light level at a location.
+- `GetListValue(var, list, num)` — Gets a list variable's value at an index.
+- `GetLodestoneLoc(var, item)` — Gets a compass's lodestone location.
+- `GetLoreLine(var, item, num)` — Gets a single line from an item's lore.
+- `GetMaxAmount(var, item)` — Gets an item's maximum stack size.
+- `GetMaxItemAmount`
+- `GetMiniMessageExpr(var, comp)` — Gets the MiniMessage expression for a styled text value.
+- `GetModelDataNums(var, item)` — Gets the numerical model values on an item, used in resource packs.
+- `GetModelDataStrs(var, item)` — Gets the model string values on an item, used in resource packs.
+- `GetParticleAmount(var, particle)` — Gets a particle effect's particle amount.
+- `GetParticleColor(var, particle)` — Gets a particle effect's particle color.
+- `GetParticleDur(var, particle)` — Gets a particle effect's duration.
+- `GetParticleFade(var, particle)` — Gets a particle effect's particle fade color.
+- `GetParticleMat(var, particle)` — Gets a particle effect's particle display material.
+- `GetParticleMotion(var, particle)` — Gets a particle effect's particle motion.
+- `GetParticleOpac(var, particle)` — Gets a particle effect's opacity.
+- `GetParticlePower(var, particle)` — Gets a particle effect's power.
+- `GetParticleRoll(var, particle)` — Gets a particle effect's roll.
+- `GetParticleSize(var, particle)` — Gets a particle effect's particle size.
+- `GetParticleSprd(var, particle)` — Gets a particle effect's horizontal or vertical spread.
+- `GetParticleType(var, particle)` — Gets a particle effect's type.
+- `GetPotionAmp(var, pot)` — Gets a potion effect's amplifier.
+- `GetPotionDur(var, pot)` — Gets a potion effect's duration.
+- `GetPotionType(var, pot)` — Gets a potion effect's type.
+- `GetRegexGroup(var, txt, txt, txt, num)` — Gets the value of a specific Regex Group in a Regex match.
+- `GetSignText`
+- `GetSignText(var, loc)` — Gets a sign's text at a location.
+- `GetSoundPitch(var, snd)` — Gets a sound's pitch or note.
+- `GetSoundType(var, snd)` — Gets the given sound's type.
+- `GetSoundVariant(var, snd)` — Gets the variant of a sound.
+- `GetSoundVolume(var, snd)` — Gets a sound's volume.
+- `GetTooltipStyle(var, item)` — Gets an item's custom tooltip.
+- `GetValueIndex(var, list, any)` — Searches for a value in a list variable and gets the index if found.
+- `GetVectorComp(var, vec)` — Gets a vector's X, Y, or Z component.
+- `GetVectorLength(var, vec)` — Gets a vector's length.
+- `GradientNoise(var, loc, [num], [num], [num], [num], [num], [num], [num], [num], [num], [num], [num])` — Gets gradient noise: A type of noise based on a lattice of random gradients.
+- `GzipCompress(var, byte...)` — Compresses bytes as a list of numbers to Gzip.
+- `GzipDecompress(var, byte...)` — Decompresses Gzip-compressed bytes as a list of numbers.
+- `HiddenComponents(var, [item], [txt...])` — Sets an item's components that should show up in its lore.
+- `HSBColor(var, num, [num], [num], list)` — Creates a color based on hue, saturation, and brightness.
+- `HSLColor(var, num, [num], [num], list)` — Creates a color based on hue, saturation, and lightness.
+- `IndexOfSubstring(var, txt, txt, [num])` — Searches for a string in another string and gets the index if found.
+- `InsertListValue(var, num, any)` — Inserts a value into a list variable at an index, shifting all values at and after it to the right.
+- `Interpolate(var, num, [num], [num])` — Interpolates two numbers based on a time value and an easing type.
+- `JoinString(var, list, [txt], [txt])` — Combines a list of strings.
+- `JsonToValue(var, txt)` — Converts JSON to a value.
+- `ListLength(var, list)` — Gets the number of values a list has.
+- `LoadBucket(var, txt, [txt])` — Loads a given bucket, the bucket stays loaded until it is unloaded with Set Variable: Save & Unload Bucket
+- `LoadedBuckets(var, [txt])` — Gets all buckets currently loaded on this plot from a given namespace
+- `Logarithm(var, [num], num)` — Finds the logarithm of a number. A logarithm is the power the base must be raised to to get the given input.
+- `MaxNumber(var, num...)` — Sets a variable to the highest number in a set.
+- `MinNumber(var, num...)` — Sets a variable to the lowest number in a set.
+- `MultiplyVector(var, [vec], num)` — Multiplies a vector's length by a number.
+- `NamedRegexGrps(var, txt, txt)` — Gets a dictionary of all named capture groups in a Regex match.
+- `Noise(var, loc, [num], [num], [num], [num], [num])` — Gets a seeded noise value.
+- `NormalRandom(var, num, num)` — Sets a variable to a normally distributed random number. Values closer to μ are more likely to be chosen.
+- `ParseMiniMessage(var, txt)` — Parses a MiniMessage expression from a string value into a styled text.
+- `ParseMiniMessageExpr`
+- `ParseNumber(var, [txt])` — Converts a string to a number.
+- `ParsePitch`
+- `ParseX`
+- `ParseY`
+- `ParseYaw`
+- `ParseZ`
+- `PerlinNoise`
+- `PopListValue(var, list, [num])` — Gets a list variable's value at an index and removes it.
+- `PurgeBucket(txt, [txt])` — Purges all variables in a given loaded bucket.
+- `PurgeVars(txt...)` — Clears all variables with names that match the given text.
+- `RandomizeList(var, [list])` — Randomizes the order of a list variable's values.
+- `RandomLoc(var, loc, loc)` — Sets the variable to a random location between two locations.
+- `RandomNumber(var, num, num)` — Sets a variable to a random number between two other numbers.
+- `RandomValue(var, any...)` — Sets a variable to a random value from a set.
+- `RandomVector(var, [num])` — Creates a random vector that lies on a sphere. Generated vectors will be uniformly distributed on its surface.
+- `Raycast(var, loc, num)` — Raycasts from a location to the first intersection.
+- `RaycastBlock`
+- `RaycastEntity`
+- `ReflectVector(var, [vec], vec)` — Reflects a vector off a surface defined by another vector.
+- `RemBannerLayer(var, [item], [num])` — Removes a pattern layer from a banner or a shield.
+- `RemItemEnchant(var, [item], txt)` — Removes an enchantment from an item.
+- `RemoveDictEntry(var, txt, [any...])` — Removes the dictionary entry with the given key.
+- `RemoveItemAttrs(var, [item])` — Removes all attributes from an item with the given attribute type and slot.
+- `RemoveItemTag(var, [item], txt)` — Removes a custom item tag.
+- `RemoveListIndex(var, num...)` — Removes a list variable's value at an index and shifts all values after it to the left.
+- `RemoveListValue(var, any...)` — Removes all matching values from a list variable.
+- `RemoveString(var, [txt], txt...)` — Searches for part of a string and removes all instances of it.
+- `RepeatString(var, txt, num)` — Repeats a string the given number of times.
+- `ReplaceString(var, txt, txt, txt)` — Searches for part of a string and replaces it.
+- `ReverseList(var, [list])` — Reverses the order of a list variable's values.
+- `RGBColor(var, num, num, num, list)` — Creates a color hex based on red, green, and blue channels.
+- `RmText`
+- `Root(var, [num], [num])` — Takes the root of a number.
+- `RotateAroundAxis(var, [vec], num)` — Rotates a vector around an axis by an angle.
+- `RotateAroundVec(var, [vec], vec, num)` — Rotates a vector around another vector by an angle.
+- `RotationVector(var, num, num, [num])` — Sets a variable to a vector facing a given rotation.
+- `Round`
+- `RoundNumber`
+- `RoundNumber(var, [num], [num])` — Rounds a number to a whole number or multiple.
+- `SanitizeTags(var, [txt])` — Sanitizes all MiniMessage tags in a string. This is useful for using user input in the Parse MiniMessage Set Variable.
+- `SaveBucket(var, txt, [txt])` — Saves a given bucket.
+- `SaveUnloadBucket(var, txt, [txt])` — Saves and unloads a given bucket. Once the bucket is unloaded other plots can load this bucket if they have access to the namespace.
+- `SegmentString(var, txt, [num])` — Segments a string into chunks of a specified size.
+- `SetAllCoords(var, [loc], [num], [num], [num], [num], [num])` — Sets a location's coordinates or creates a new location.
+- `SetAllItemTags(var, [item], dict)` — Sets custom tags on an item based on the input dictionary.
+- `SetArmorTrim(var, [item])` — Sets the trim of an armor item.
+- `SetBannerLayer(var, [item], [num])` — Replaces a pattern layer in a banner or a shield.
+- `SetBookText(var, [item], comp..., comp, num)` — Sets a book's text.
+- `SetBreakability(var, [item])` — Sets whether an item is unbreakable.
+- `SetBreakSound(var, [item], snd)` — Sets which sound an item makes when it breaks.
+- `SetBundleItems(var, [item], [item...])` — Sets the contents of a bundle.
+- `SetCanDestroy(var, [item], block...)` — Sets which blocks an item can break in Adventure Mode.
+- `SetCanPlaceOn(var, [item], block...)` — Sets which blocks an item can be placed on in Adventure Mode.
+- `SetCase(var, [txt])` — Sets a string's capitalization (eg. to uppercase).
+- `SetConsumable(var, [item], [snd], [num], [num], [num])` — Adds consumable properties to an item.
+- `SetCoord(var, [loc], num)` — Sets a location's X, Y, Z, pitch, or yaw coordinate.
+- `SetCoords`
+- `SetCrossbowProj(var, [item], [item...])` — Sets a crossbow's loaded projectiles.
+- `SetCustomSound(var, [snd], [txt])` — Sets the key of a custom sound.
+- `SetDictValue(var, txt, any)` — Sets the given key to the value.
+- `SetDirection(var, [loc], vec)` — Sets a location's rotation (pitch and yaw) to a direction.
+- `SetDirection`
+- `SetHeadTexture(var, [item], txt)` — Sets a player head's texture using an owning player or custom texture.
+- `SetHeadTexture`
+- `SetItemAmount(var, [item], num)` — Sets an item's stack size.
+- `SetItemColor(var, [item], txt)` — Sets a colorable item's color.
+- `SetItemDura(var, [item], num)` — Sets an item's durability.
+- `SetItemEffects(var, [item], pot...)` — Sets the potion effects applied by an item.
+- `SetItemEnchants`
+- `SetItemEnchants(var, [item], dict)` — Sets an item's enchantment list.
+- `SetItemFlags`
+- `SetItemFlags`
+- `SetItemFood`
+- `SetItemGlowing(var, [item])` — Sets whether an item is glowing regardless of its enchantments.
+- `SetItemHideTooltip(var, [item])` — Sets whether an item's tooltip is visible or not.
+- `SetItemLeftover(var, [item], [item])` — Sets an item's leftover item that gets replaced on use, e.g. drinking stew gives a bowl.
+- `SetItemLore`
+- `SetItemLore(var, [item], comp..., [comp], num)` — Sets an item's lore list.
+- `SetItemMaxDura(var, [item], [num])` — Sets an item's maximum durability.
+- `SetItemModel(var, [item], [txt])` — Sets an item's model.
+- `SetItemName`
+- `SetItemName(var, [item], comp...)` — Sets an item's name.
+- `SetItemRarity(var, [item])` — Sets an item's rarity, affecting its default name color.
+- `SetItemTag(var, [item], txt, num, txt)` — Sets the value of or creates a custom stored tag value.
+- `SetItemTool(var, [item], [num], [num])` — Adds tool properties to an item.
+- `SetItemType(var, [item], txt)` — Sets an item's material.
+- `SetItemWeapon(var, [item], [num], [num])` — Adds weapon properties to an item.
+- `SetListValue(var, num, any)` — Sets a list variable's value at an index.
+- `SetLodestoneLoc(var, [item], loc)` — Sets a compass's lodestone location.
+- `SetMapTexture(var, [item], txt)` — Sets a map item's texture to the image at the given URL.
+- `SetMaxAmount(var, [item], [num])` — Set an item's maximum stack size.
+- `SetModelData`
+- `SetModelDataNums(var, [item], num...)` — Sets the numerical model values on an item, used in resource packs.
+- `SetModelDataStrs(var, [item], txt...)` — Sets the model string values on an item, used in resource packs.
+- `SetParticleAmount(var, [particle], num)` — Sets a particle effect's particle amount.
+- `SetParticleColor(var, [particle], txt, [num])` — Sets a particle effect's particle color and color variation.
+- `SetParticleDur(var, [particle], num)` — Sets a particle effect's duration.
+- `SetParticleFade(var, [particle], txt)` — Sets a particle effect's particle fade color.
+- `SetParticleMat(var, [particle], item)` — Sets a particle effect's particle display material.
+- `SetParticleMotion(var, [particle], [vec], [num])` — Sets a particle effect's particle motion and motion variation.
+- `SetParticleOpac(var, [particle], num)` — Sets a particle effect's opacity.
+- `SetParticlePower(var, [particle], num)` — Sets a particle effect's power.
+- `SetParticleRoll(var, [particle], num)` — Sets a particle effect's roll.
+- `SetParticleSize(var, [particle], num, [num])` — Sets a particle effect's particle size and size variation.
+- `SetParticleSprd(var, [particle], num, num)` — Sets a particle effect's horizontal and vertical spread.
+- `SetParticleType(var, [particle], txt)` — Sets a particle effect's type.
+- `SetPitch`
+- `SetPotionAmp(var, [pot], num)` — Sets a potion effect's amplifier.
+- `SetPotionDur(var, [pot], num)` — Sets a potion effect's duration.
+- `SetPotionType(var, [pot], txt)` — Sets a potion effect's type.
+- `SetSoundPitch(var, [snd], num, txt)` — Sets a sound's pitch or note
+- `SetSoundType(var, [snd], txt)` — Sets a sound's type.
+- `SetSoundVariant(var, [snd], [txt])` — Sets the variant of a sound.
+- `SetSoundVolume(var, [snd], num)` — Sets a sound's volume.
+- `SetTooltipStyle(var, [item], [txt])` — Sets an item's custom tooltip.
+- `SetVectorComp(var, [vec], num)` — Sets a vector's X, Y, or Z component.
+- `SetVectorLength(var, [vec], [num])` — Sets a vector's length. This affects all components.
+- `SetX`
+- `SetY`
+- `SetYaw`
+- `SetZ`
+- `ShiftAllAxes(var, [loc], [num], [num], [num])` — Shifts a location's coordinates on the X, Y, and Z axes.
+- `ShiftAllDirections(var, [loc], [num], [num], [num])` — Shifts a location in multiple directions based on its rotation.
+- `ShiftAllDirs`
+- `ShiftDirection`
+- `ShiftInDirection(var, [loc], [num])` — Shifts a location forward, upward, or sideways based on its rotation.
+- `ShiftLocation`
+- `ShiftOnAxis(var, [loc], num)` — Shifts the X, Y, or Z coordinate of a location on its axis.
+- `ShiftOnVector(var, [loc], vec, num)` — Shifts a location along a vector.
+- `ShiftRotation(var, [loc], num)` — Rotates a location by shifting its pitch (up/down) or yaw (left/right) value.
+- `ShiftToward(var, [loc], loc, [num])` — Shifts a location toward another location by the given distance.
+- `Sine(var, num)` — Sets a variable to the trigonometric sine function of a number.
+- `SortDict(var, [dict])` — Sorts a dictionary by its keys or values.
+- `SortList(var, [list])` — Sorts a list variable's values.
+- `SplitString(var, txt, [txt])` — Splits a string into a list of strings.
+- `String(var, [any...])` — Sets a variable to a string, or combines multiple values into one string.
+- `StringLength(var, txt)` — Gets the number of characters a string has.
+- `StringToBytes(var, txt)` — Converts a string to a list of numbers representing bytes.
+- `StyledText(var, [any...])` — Sets a variable to a styled text, or combines multiple values into one styled text.
+- `SubtractVectors(var, vec...)` — Sets a variable to the difference between the given vectors.
+- `SwapVectorComp(var, [vec])` — Swaps two of a vector's X, Y, or Z components.
+- `Tangent(var, num)` — Sets a variable to the trigonometric tangent function of a number.
+- `TranslateColors(var, [txt])` — Converts legacy color codes written in "&" or hex format to functional color codes, or vice versa.
+- `TrimList(var, [list], num, [num])` — Trims a list, starting and ending at the given indices.
+- `TrimString(var, [txt], num, [num])` — Trims a string, starting and ending at the given positions.
+- `TrimStyledText(var, [comp], num, [num])` — Trims the content of styled text, leaving all formatting in place.
+- `ValueNoise(var, loc, [num], [num], [num], [num], [num], [num], [num], [num], [num], [num], [num])` — Gets value noise: A type of noise based on a lattice of random values.
+- `ValueToJson(var, num, txt, list, dict)` — Converts a value to JSON.
+- `Vector(var, num, num, num, txt)` — Sets a variable to a vector.
+- `VectorBetween(var, loc, loc)` — Sets a variable to the vector between two locations.
+- `VoronoiNoise`
+- `WebResponse(var, txt, [txt])` — Gets the response from a web request.  The output dictionary has 3 keys: "status": The HTTP status code. "statusText": The HTTP status message. And "body", or "json" if the response is JSON.
+- `WorleyNoise`
+- `WrapNum(var, [num], num, num)` — Checks if a number is inside the bounds and if not, wraps it around the farthest bound.
+- `WrapNumber`
+- `x(var, num...)` — Sets a variable to the product of the given numbers.
+
+## If Player
+`IfPlayer(...)` — 42 actions
+
+- `BlockEquals`
+- `CanFly` — Checks if a player can fly.
+- `CmdArgEquals`
+- `CmdEquals`
+- `CursorItem([item...])` — Checks if the item that is being moved with a player's cursor is the given item.
+- `HasAllItems`
+- `HasItem(item...)` — Checks if a player has an item in their inventory.
+- `HasPermission` — Checks if a player has a certain level of access on this plot, such as builder or owner.
+- `HasPotion(pot...)` — Checks if a player has a potion effect of the given type active.
+- `HasRoomForItem(item)` — Checks if a player's inventory has room for one or more items to be given.
+- `HasSlotItem(num..., [item...])` — Checks if a player has an item in the given inventory slot.
+- `InvOpen` — Checks if a player has a certain inventory type open.
+- `InWorldBorder(loc)` — Checks if a player (or a location) is within their world border.
+- `IsBlocking` — Checks if a player is blocking with a shield.
+- `IsFlying` — Checks if a player is flying.
+- `IsGliding` — Checks if a player is gliding with elytra.
+- `IsGrounded` — Checks if a player is supported by a block.
+- `IsHitboxNear(loc..., [num])` — Checks if a player's hitbox is within a range of a location.
+- `IsHolding([item...])` — Checks if a player is holding an item in their hand.
+- `IsHoldingMain`
+- `IsHoldingOff`
+- `IsInGameMode` — Checks if a player is in a specific game mode.
+- `IsLookingAt([block...], loc..., [num])` — Checks if a player is looking at the given block or location.
+- `IsNear(loc..., [num])` — Checks if a player is within a range of a location.
+- `IsRiding`
+- `IsRiding(entity..., txt...)` — Checks if a player is riding another entity.
+- `IsSneaking` — Checks if a player is sneaking.
+- `IsSprinting` — Checks if a player is sprinting or using the sprint key to swim.
+- `IsSwimming` — Checks if a player is in water or lava.
+- `IsUsingItem([item...])` — Checks if a player is currently using an item (eg. bow).
+- `IsWearing(item...)` — Checks if a player is wearing an item.
+- `ItemEquals`
+- `MainHandEquals` — Checks if a player's main hand is their left or right hand.
+- `MenuSlotEquals(num..., [item...])` — Checks if a player's currently open inventory menu contains an item in the given slot.
+- `MovementKey` — Checks if a player is holding a specific movement key.
+- `NameEquals(txt...)` — Checks if a player's username is equal to one of the given usernames (case insensitive).
+- `NoItemCooldown(item...)` — Checks if a player does not have a cooldown applied to an item type.
+- `OwnsProduct(txt)` — Checks if a player owns a plot product or is a developer or builder.
+- `SlotEquals(num)` — Checks if a player's currently selected hotbar slot equals the given slot ID.
+- `StandingOn`
+- `StandingOn([block...], loc...)` — Checks if a player is standing on the given block or location.
+- `UsingPack` — Checks if a player is using a plot resource pack.
+
+## If Entity
+`IfEntity(...)` — 17 actions
+
+- `Exists` — Checks if an entity still exists in the world.
+- `HasCustomTag(txt, [num], [txt])` — Checks if an entity has a given custom tag, and (if provided) whether the tag matches the given value.
+- `HasPotion(pot...)` — Checks if an entity has a potion effect of a certain type active.
+- `IsGrounded` — Checks if an entity is supported by a block.
+- `IsHitboxNear(loc..., [num])` — Checks if an entity's hitbox is within a range of a location.
+- `IsItem` — Checks if an entity is an item.
+- `IsMob` — Checks if an entity is a mob.
+- `IsNear(loc..., [num])` — Checks if an entity is within a range of a location.
+- `IsProj` — Checks if an entity is a projectile.
+- `IsRiding`
+- `IsRiding(entity..., txt...)` — Checks if an entity is riding another entity.
+- `IsSheared` — Checks if a sheep is sheared.
+- `IsType(entity...)` — Checks if an entity is the given type.
+- `IsVehicle` — Checks if an entity is a boat or minecart.
+- `NameEquals(txt...)` — Checks if an entity's name or custom name is equal to the given text.
+- `StandingOn`
+- `StandingOn(block..., loc...)` — Checks if an entity is standing on the given block or location.
+
+## If Game
+`IfGame(...)` — 18 actions
+
+- `AttackIsCrit` — Checks if an event attack is critical.
+- `BlockEquals(loc, [block...], [blocktag...])` — Checks if the block at a location is the given block.
+- `BlockPowered(loc...)` — Checks if the block at a location is powered by redstone.
+- `CmdArgEquals(txt..., num)` — Checks if a part of the command entered in the Command Event is equal to the given string.
+- `CommandEquals(txt...)` — Checks if the command entered in the Command Event is equal to the given string.
+- `ContainerHas(loc, item...)` — Checks if the container at a location has the given item.
+- `ContainerHasAll(loc, item...)` — Checks if the container at a location has all of the given items.
+- `EventBlockEquals(block...)` — Checks if the block in a block related event is the given block.
+- `EventCancelled` — Checks if the current event is cancelled.
+- `EventChunkNew` — Checks if the chunk being loaded in this event is a new chunk.
+- `EventItemEquals(item...)` — Checks if the item in a item related event is the given item.
+- `HasPlayer(txt...)` — Checks if there is currently a player in the game with the given name or UUID.
+- `HasRoomForItem(loc, item)` — Checks if the container at a location has room for one or more items to be given.
+- `InBlock(loc)` — Checks if a location collides with the hitbox of the nearest block.
+- `IsChunkLoaded(loc)` — Checks if the chunk at a location is currently loaded.
+- `MovementKey` — Checks if specific movement keys changed state in the current event.
+- `SignHasTxt`
+- `SignHasTxt(loc, comp...)` — Checks if the sign at a location has the given text.
+
+## If Variable
+`IfVar(...)` — 34 actions
+
+- `!=(any, any...)` — Checks if a value does not equal another value.
+- `<(num, num)` — Checks if a number value is less than another number.
+- `<=(num, num)` — Checks if a number value is less than or equal to another number.
+- `=(any, any...)` — Checks if a value is equal to one of the given values.
+- `>(num, num)` — Checks if a number value is greater than another number.
+- `>=(num, num)` — Checks if a number value is greater than or equal to another number.
+- `All=(any, any...)` — Checks if a value is equal to all of the other given values.
+- `BlockIsSolid(block)` — Checks if a material will collide with entities.
+- `Contains(txt, txt...)` — Checks if a string value contains another string.
+- `DictHasKey(dict, txt)` — Checks if a dictionary has the given key.
+- `DictHasKeys(dict, txt...)` — Checks if a dictionary has the given keys.
+- `DictValueEquals(dict, txt, any...)` — Checks if a dictionary's value for the given key is equal to any of the given values.
+- `EndsWith(txt, txt...)` — Checks if the last part of a string value matches a certain string.
+- `InRange(any, any, any)` — Checks if a number value is in between 2 other numbers or a location value is within the region of 2 other locations.
+- `InRange`
+- `IsFiltered(txt)` — Checks if the input string would be filtered by the selected chat filters.
+- `IsNear`
+- `ItemEquals(item, [item...])` — Works the same as Value = but has a few extra options for item comparison.
+- `ItemHasEnchant(item, [txt], [num])` — Checks if an item has a given enchantment, or, if no enchantment is specified, checks if it has any.
+- `ItemHasTag(item, txt, [num], [txt])` — Checks if an item has a given custom tag, and (if provided) whether the tag matches the given value.
+- `ItemIsBlock(item)` — Checks if an item is able to be placed.
+- `ItemIsUnbreakable(item)` — Checks if an item is unbreakable.
+- `Legacy !=`
+- `Legacy =`
+- `ListContains(list, any...)` — Checks if any of a list's contents match the given value.
+- `ListSizeEquals(list, [num])` — Checks if a list is of a given size.
+- `ListValueEq(list, num, any...)` — Checks if a list's value at an index is equal to a value.
+- `LocIsNear(loc, loc..., num)` — Checks if a location is near another location.
+- `StartsWith(txt, txt...)` — Checks if the first part of a string value matches a certain string.
+- `StringMatches(txt, txt...)` — Checks if a string value matches other values.
+- `TextMatches`
+- `ValueIsEmpty(txt, comp, list, dict, item)` — Checks if a value is empty.
+- `VarExists(var)` — Checks if a variable exists.
+- `VarIsType(any)` — Checks if a value is of a certain type.
+
+## Control (wait, return, stop…)
+`Control(...)` — 8 actions
+
+- `End` — Stops the current event thread. Any code after this block will not be executed.
+- `EndAllThreads` — Ends all currently active threads, including active lines, loops, etc.
+- `PrintDebug([any...])` — Sends a formatted message to the specified plot staff group regardless of which mode they're currently in. Clicking on the message will teleport you to this block.
+- `Return` — Skips the rest of a Function sequence and returns to the block it was called from.
+- `ReturnNTimes`
+- `Skip` — Skips the rest of this repeat statement's code and continues to the next repetition.
+- `StopRepeat` — Stops a Repeat sequence and continues to the next code block.
+- `Wait([num])` — Pauses the current code sequence for a duration of ticks, seconds, or minutes.
+
+## Repeat
+`Repeat(...)` — 12 actions
+
+- `Adjacent(var, loc)` — Repeats code once for each block adjacent to a location.
+- `DoWhile` — Repeats code as long as a condition is true. The condition is evaluated at the end of each loop iteration.
+- `ForEach(var, list)` — Repeats code once for each index of a list.
+- `ForEachEntry(var, var, dict)` — Repeats code once per entry in a dictionary
+- `Forever` — Repeats code indefinitely.
+- `Grid(var, loc, loc)` — Repeats code once for each block in a region in order: X → Z → Y. Iterates from the first to the second location.
+- `Multiple([var], num)` — Repeats code multiple times.
+- `Path(var, loc..., [num])` — Repeats code once for each interpolated point in a path of locations.
+- `Range`
+- `Range([var], num, num, [num])` — Repeats code once for each number on a number line.
+- `Sphere(var, loc, num, [num])` — Repeats code once for every evenly distributed sphere point.
+- `While` — Repeats code as long as a condition is true. The condition is evaluated before each loop iteration.
+
+## Select Object
+`SelectObj(...)` — 29 actions
+
+- `AllEntities` — Creates a selection of all entities in the game.
+- `AllMobs`
+- `AllPlayers` — Creates a selection of all players in the game.
+- `Damager`
+- `DefaultEntity`
+- `DefaultPlayer`
+- `EntitiesCond` — Creates a selection of all entities in the game that meet a condition.
+- `EntityName(txt..., comp...)` — Creates a selection using all entities in the game whose name or UUID matches.
+- `EntityUUID(txt...)` — Creates a selection of all entities in the game with the given UUIDs.
+- `EventTarget` — Creates a selection using a target involved in this Event.
+- `FilterCondition` — Filters the selection to the objects that meet a certain condition.
+- `FilterDistance(loc, [num])` — Filters the selection to the objects that are nearest or farthest to a location.
+- `FilterRandom([num])` — Filters the selection by randomly picking one or more objects from it.
+- `FilterRay([var], loc, num, [num], [num])` — Filters the selected objects to the objects that intersect a ray.
+- `FilterSort(any, [num])` — Filters the selection by sorting the value of each object in order.
+- `Invert` — Creates a new selection by inverting the selection that is currently active.
+- `Killer`
+- `LastEntity` — Creates a selection using the most recently spawned entity.
+- `LastMob`
+- `MobName`
+- `MobsCond`
+- `PlayerName(txt...)` — Creates a selection using all players in the game whose name or UUID matches.
+- `PlayersCond` — Creates a selection of all players in the game that meet a condition.
+- `Projectile`
+- `RandomEntity`
+- `RandomPlayer([num])` — Creates a selection using one or more random players in the game.
+- `Reset` — Deactivates the selection. Code that follows will run normally with event targets.
+- `Shooter`
+- `Victim`
+
+## Game values
+`gval('Name')` — read live state. Grouped by category.
+
+### Event Values
+- `Close Inventory Event Cause` — Gets the reason the target's inventory was closed in this event.
+- `Combust Event Cause` — Gets the reason the target caught on fire in this event.
+- `Combust Event Duration` — Gets the duration of fire inflicted in this event.
+- `Damage Event Cause` — Gets the type of damage taken or dealt in this event.
+- `Event Affected Blocks` — Gets the locations of blocks affected in this event.
+- `Event Block Location` — Gets the location of the block in this event.
+- `Event Block Side` — Gets the side of the block that was hit in this event as a direction.
+- `Event Clicked Slot Index` — Gets the index of the clicked inventory slot in this event.
+- `Event Clicked Slot Item` — Gets the inventory item clicked on in this event.
+- `Event Clicked Slot New Item` — Gets the inventory item clicked with in this event.
+- `Event Command` — Gets the entire command line entered in this event.
+- `Event Command Arguments` — Gets the separated parts of the event command.
+- `Event Damage` — Gets the amount of damage dealt in this event. Includes damage reduction.
+- `Event Death Message` — Gets the death message for this death event.
+- `Event Destination Block Location` — Gets the location of the destination block in this event.
+- `Event Exhaustion` — Gets the amount of exhaustion gained in this event.
+- `Event Heal Amount` — Gets the amount of health regained in this event.
+- `Event Hit Type` — Gets the type of object that the projectile collided with
+- `Event Hotbar Slot` — Gets the hotbar slot being changed to in this event.
+- `Event Item` — Gets the item in an item related event.
+- `Event Message` — The message sent in this event
+- `Event New Redstone Current Strength` — Gets the strength of the redstone current after this event.
+- `Event New Vault State` — Gets the state of the vault after this event.
+- `Event Power` — Gets the percentage of power this event was executed with.
+- `Event Redstone Current Strength` — Gets the strength of the redstone current before this event.
+- `Event Sign Side` — Gets the sign side modified in this event.
+- `Event Sign Text` — Gets the sign text in this event.
+- `Event Transform Entities` — Gets the entities an entity transforms into.
+- `Event Vault State` — Gets the state of the vault before this event.
+- `Exhaustion Event Cause` — Gets the reason the target became exhausted in this event.
+- `Fish Event Cause` — Gets the cause of this fish event.
+- `Heal Event Cause` — Gets the reason the target regained health in this event.
+- `Inventory Event Click Type` — Gets the click type in this inventory click event.
+- `Product ID` — Gets the ID of the product purchased.
+- `Raw Event Damage` — Gets the amount of damage dealt in this event before any damage reductions.
+- `Teleport Event Cause` — Gets the reason the player was teleported in this event.
+- `Teleport Location` — Gets the location that will be teleported to in this event.
+- `Trade Ingredients` — Gets the items given to a villager in a trade.
+- `Trade Result` — Gets the result item of a villager trade.
+- `Transform Event Cause` — Gets the reason the target transformed in this event.
+
+### Informational Values
+- `Attached Leads` — Gets all entities attached to to a target by a lead.
+- `Display Entity Scale` — Gets the scale of a display entity's transformation.
+- `Display Entity Translation` — Gets the translation of a display entity's transformation.
+- `Entity Type` — Gets a target's entity type.
+- `Game Mode` — Gets a player's game mode.
+- `Lead Holder` — Gets the entity that is holding a target on a lead.
+- `Name` — Gets a target's name.
+- `Open Inventory Title` — Gets the title of a target's opened inventory.
+- `Particle Visibility Status` — Gets the target's Particles setting.
+- `Passengers` — Gets the UUIDs of any entities riding a target.
+- `Pick Entity Result` — Gets the item that would be created when a player middle clicks the target in Creative mode.
+- `Pose` — Gets the target's pose.
+- `Potion Effects` — Gets a target's active potion effects.
+- `Pressed Movement Keys` — Gets a list of all movement keys that are currently pressed by a player.
+- `Projectile Shooter UUID` — Gets the UUID of a projectile's shooter, or "none" if not set.
+- `Targeted Entity UUID` — Gets the UUID of the entity that the target is targeting.
+- `UUID` — Gets a target's universally unique identifier.
+- `Vehicle` — Gets the UUID of the entity that the target is riding.
+- `Villager Trades` — Gets a list of dictionaries representing the trades of a villager.
+- `Weather Type` — Gets a player's weather type.
+
+### Item Values
+- `Armor Items` — Gets the items in a target's armor slots.
+- `Cursor Item` — Gets the item on a target's cursor (used when moving items in the inventory).
+- `Entity Item` — The item form of the target.
+- `Hotbar Items` — Gets a target's current hotbar items.
+- `Inventory Items` — Gets a target's inventory items (includes hotbar).
+- `Inventory Menu Items` — Gets a target's current inventory menu items.
+- `Main Hand Item` — Gets a target's currently held item.
+- `Off Hand Item` — Gets a target's currently held off hand item.
+- `Saddle Item` — Gets a target's currently worn saddle or carpet.
+
+### Locational Values
+- `Body Yaw` — Gets the yaw (left/right rotation) of a target's body.
+- `Direction` — Gets the looking direction of a target's location as a vector.
+- `Eye Location` — Gets a target's location, but adjusted to its eye height.
+- `Location` — Gets a target's location.
+- `Midpoint Location` — Gets the location of the center of the target's bounding box.
+- `Pitch` — Gets the pitch (up/down rotation) of a target's position.
+- `Spawn Location` — Gets a target's original spawn location.
+- `Standing Block Location` — Gets the location of the block that is supporting the player.
+- `Target Block Location` — Gets the location of the block a target is looking at.
+- `Target Block Side` — Gets the side of the block a target is looking at as a direction.
+- `Velocity` — Gets the speed at which a target is moving (not walking) in each direction.
+- `X-Coordinate` — Gets the X coordinate of a target's position.
+- `Y-Coordinate` — Gets the Y coordinate of a target's position.
+- `Yaw` — Gets the yaw (left/right rotation) of a target's position.
+- `Z-Coordinate` — Gets the Z coordinate of a target's position.
+
+### Plot Values
+- `Active Block Transactions` — Gets the number of block transactions a plot is executing.
+- `CPU Usage` — Gets the percentage of the plot's CPU being used this instant.
+- `Microseconds Since Startup` — Gets the number of microseconds elapsed since the first player joined the plot. The decimal part represents nanoseconds.
+- `Player Count` — Gets the amount of players playing on the plot.
+- `Plot ID` — Gets the id of the plot as a string.
+- `Plot Name` — Gets the name of the plot as a styled text.
+- `Plot Player Names` — Gets the name of each player on the plot.
+- `Plot Player UUIDs` — Gets the UUID of each player on the plot.
+- `Plot Size` — Gets the size of the plot.
+- `Selection Size` — Gets the amount of targets in the selection.
+- `Selection Target Names` — Gets the name of each target in the selection.
+- `Selection Target UUIDs` — Gets the UUID of each target in the selection.
+- `Server TPS` — Gets the amount of game Ticks Per Second the server is currently able to handle.
+- `Ticks Since Startup` — Gets the number of ticks that elapsed since the first player joined the plot.
+- `Timestamp` — Gets the current time as one number in seconds. E.g.: 1418840496.5 means Dec 17, 2014, 18:21:36.
+
+### Statistical Values
+- `Absorption Health` — Gets a target's absorption health (golden hearts).
+- `Armor Points` — Gets a target's armor points, which has a base value that can be altered by items.
+- `Armor Toughness` — Gets a target's armor toughness, which has a base value that can be altered by items.
+- `Attack Cooldown` — Gets a target's current attack cooldown as a percentage of the way to fully charged
+- `Attack Cooldown Ticks` — Gets the number of ticks it will take to fully charge a target's attack cooldown after attacking with their held item.
+- `Attack Damage` — Gets a target's attack damage, which has a base value that can be altered by items.
+- `Attack Speed` — Gets a target's attack speed, which has a base value that can be altered by items.
+- `Current Health` — Gets a target's remaining health points.
+- `Entity Height` — Gets the height of an entity's bounding box.
+- `Entity Width` — Gets the width of an entity's bounding box.
+- `Experience Level` — Gets a target's experience level.
+- `Experience Progress` — Gets a target's experience progress percentage to the next level.
+- `Fall Distance` — Gets a target's distance fallen in blocks.
+- `Fire Ticks` — Gets the remaining ticks a target is on fire for.
+- `Flight Speed` — Gets a target's flight speed as a percentage.
+- `Food Exhaustion` — Gets a target's exhaustion level, which is increased by the player's actions.
+- `Food Level` — Gets a target's remaining food points.
+- `Food Saturation` — Gets a target's saturation level, which depends on the types of food consumed.
+- `Freeze Ticks` — Gets the remaining ticks a target is freezing for.
+- `Held Slot` — Gets a target's selected hotbar slot index.
+- `Invulnerability Ticks` — Gets a target's remaining ticks of invulnerability.
+- `Item Usage Progress` — Gets the progress percentage of a target using their held item, such as food.
+- `Maximum Health` — Gets a target's maximum health points.
+- `Ping` — Gets the latency between a player and the server in milliseconds.
+- `Remaining Air` — Gets a target's remaining air ticks.
+- `Steer Forward Movement` — While a player is steering an entity, gets the forward movement of the steering.
+- `Steer Sideways Movement` — While a player is steering an entity, gets the sideways movement of the steering.
+- `Walk Speed` — Gets a target's walk speed as a percentage.

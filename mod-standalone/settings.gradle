@@ -1,0 +1,18 @@
+pluginManagement {
+    repositories {
+        maven {
+            name = 'Fabric'
+            url = 'https://maven.fabricmc.net/'
+        }
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+// Lets Gradle auto-download a Java 21 toolchain (Minecraft 1.21.x targets Java 21)
+// even though the Gradle daemon runs on a newer JDK (the user has JDK 25).
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
+}
+
+rootProject.name = 'dfvibe'

@@ -1,0 +1,161 @@
+package dev.dfonline.codeclient.config;
+
+import dev.dfonline.codeclient.CodeClient;
+import dev.dfonline.codeclient.command.CommandSender;
+import dev.dfonline.codeclient.dev.InteractionManager;
+import dev.dfonline.codeclient.dev.menu.devinventory.DevInventoryScreen;
+import dev.dfonline.codeclient.location.Dev;
+import dev.dfonline.codeclient.location.Play;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.entity.SignBlockEntity;
+import net.minecraft.block.entity.SignText;
+import net.minecraft.client.gui.screen.ChatScreen;
+import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.util.InputUtil;
+import net.minecraft.text.Text;
+import net.minecraft.util.Hand;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
+import org.lwjgl.glfw.GLFW;
+
+public class KeyBinds {
+    /**
+     * Starts the "Code Palette" screen if pressed.
+     */
+    public static KeyBinding editBind;
+    /**
+     * If in build mode, holding this will allow you to phase through blocks.
+     */
+    public static KeyBinding clipBind;
+
+    public static KeyBinding teleportLeft;
+    public static KeyBinding teleportRight;
+    public static KeyBinding teleportForward;
+    public static KeyBinding teleportBackward;
+
+    public static KeyBinding openAction;
+    public static KeyBinding editAction;
+    public static KeyBinding actionUsages;
+
+    /**
+     * Shows tags set with /item tag when held in creative mode.
+     * Handled in the Keyboard mixin as keybinds don't get set when pressed while in a screen.
+     */
+    public static KeyBinding previewItemTags;
+
+    /**
+     * Plays all the sounds in a code chest.
+     */
+    public static KeyBinding previewSounds;
+
+    /**
+     * Toggles between Play and Dev modes.
+     */
+    public static KeyBinding playDev;
+    /**
+     * Toggles between Play and Build modes.
+     */
+    public static KeyBinding playBuild;
+
+    public static void init() {
+        KeyBinding.Category dev = KeyBinding.Category.create(Identifier.of("codeclient:dev"));
+        KeyBinding.Category navi = KeyBinding.Category.create(Identifier.of("codeclient:navigation"));
+
+        editBind = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.codeclient.codepalette", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_Y, dev));
+        clipBind = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.codeclient.phaser", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_V, dev));
+        openAction = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.codeclient.open_action", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), dev));
+        editAction = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.codeclient.edit_action", InputUtil.Type.KEYSYM, InputUtil.GLFW_KEY_PERIOD, dev));
+        actionUsages = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.codeclient.action_usages", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), dev));
+
+        teleportLeft = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.codeclient.tp.left", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), navi));
+        teleportRight = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.codeclient.tp.right", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), navi));
+        teleportForward = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.codeclient.tp.forward", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), navi));
+        teleportBackward = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.codeclient.tp.backward", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), navi));
+
+        previewItemTags = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.codeclient.preview_item_tags", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), dev));
+        previewSounds = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.codeclient.preview_sounds", InputUtil.Type.KEYSYM, InputUtil.UNKNOWN_KEY.getCode(), dev));
+        playDev = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.codeclient.playDev", InputUtil.UNKNOWN_KEY.getCode(), dev));
+        playBuild = KeyBindingHelper.registerKeyBinding(new KeyBinding("key.codeclient.playBuild", InputUtil.UNKNOWN_KEY.getCode(), dev));
+    }
+
+    public static void tick() {
+        ClientPlayerEntity player = CodeClient.MC.player;
+        if (player != null) {
+            checkTp(teleportLeft, new Vec3d(0, 0, -2));
+            checkTp(teleportRight, new Vec3d(0, 0, 2));
+            checkTp(teleportForward, new Vec3d(3, 0, 0));
+            checkTp(teleportBackward, new Vec3d(-3, 0, 0));
+        }
+        if (CodeClient.location instanceof Dev dev) {
+            if (editBind.wasPressed()) {
+                CodeClient.MC.setScreen(new DevInventoryScreen(player));
+            }
+
+            var mc = CodeClient.MC;
+            if (openAction.wasPressed()) {
+                if (mc.crosshairTarget instanceof BlockHitResult result) {
+                    var pos = result.getBlockPos();
+                    var target = InteractionManager.targetedBlockPos(pos);
+                    if (!dev.isInDev(pos) || target == null) {
+                        return;
+                    }
+                    if (mc.options.sprintKey.isPressed()) {
+                        var sign = target.add(-1, 0, 0);
+                        if (mc.world.getBlockState(sign).isOf(Blocks.OAK_WALL_SIGN))
+                            mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, new BlockHitResult(sign.toCenterPos(), result.getSide(), sign, result.isInsideBlock()));
+                    } else {
+                        var chest = target.add(0, 1, 0);
+                        if (mc.world.getBlockState(chest).isOf(Blocks.CHEST))
+                            mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, new BlockHitResult(chest.toCenterPos(), result.getSide(), chest, result.isInsideBlock()));
+                    }
+                }
+            }
+
+            if(editAction.wasPressed()) {
+                mc.setScreen(new ChatScreen("/action ", false));
+            }
+
+            if(actionUsages.wasPressed()) {
+                    if (CodeClient.MC.crosshairTarget instanceof BlockHitResult block) {
+                        BlockPos pos = InteractionManager.targetedBlockPos(block.getBlockPos());
+                        if (pos == null || (!dev.isInDev(pos)) || CodeClient.MC.world == null) return;
+                        if (CodeClient.MC.world.getBlockEntity(pos.west()) instanceof SignBlockEntity sign) {
+                            SignText text = sign.getFrontText();
+
+                            //Checks if 2nd line is empty. There probably is a better way to check this, right...?
+                            if(text.getMessages(false)[1].getSiblings().contains(Text.empty())) return;
+
+                            String command = String.format("usages %s %s",
+                                    text.getMessage(0, false).withoutStyle().getFirst().getString()
+                                            .toLowerCase()
+                                            .replace(" ", "_")
+                                            .replace("call_function", "function")
+                                            .replace("start_process", "process"),
+                                    text.getMessage(1, false).withoutStyle().getFirst().getString());
+                            mc.getNetworkHandler().sendChatCommand(command);
+                        }
+                    }
+            }
+        }
+
+        if(CodeClient.MC.getNetworkHandler() == null) return;
+        if (playDev.wasPressed())
+            CommandSender.queue(CodeClient.location instanceof Play ? "dev" : "play");
+
+        if (playBuild.wasPressed())
+            CommandSender.queue(CodeClient.location instanceof Play ? "build" : "play");
+    }
+
+    private static void checkTp(KeyBinding keyBinding, Vec3d offset) {
+        var player = CodeClient.MC.player;
+        if (player == null) return;
+        if (keyBinding.wasPressed() && CodeClient.location instanceof Dev dev && dev.isInDevSpace()) {
+            var target = player.getEntityPos().add(offset);
+            if (dev.isInDevSpace(target)) player.setPosition(target);
+        }
+    }
+}

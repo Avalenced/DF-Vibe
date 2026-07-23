@@ -1,0 +1,32 @@
+# DF Vibe — project-wide ignores.
+# These are LOCAL / generated and embed machine-specific absolute paths, so they
+# should never be shared or committed. All are regenerable.
+
+# Python virtual environment (its activate scripts hardcode your home path)
+.venv/
+venv/
+
+# Python caches / compiled bytecode (.pyc embeds the source file's absolute path)
+__pycache__/
+*.pyc
+*.pyo
+
+# Gradle / Java build output (build reports embed absolute paths)
+.gradle/
+**/build/
+out/
+
+# Logs and scratch dumps
+*.log
+.df-log.txt
+_lv*.txt
+_tmp*.txt
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.idea/
+*.iml
+
+# Keep the Gradle wrapper jar (it's needed to build)
+!gradle/wrapper/gradle-wrapper.jar

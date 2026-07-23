@@ -21,7 +21,7 @@ repositories {
     }
     // ModMenu
     maven {
-        url 'https://maven.terraformersmc.com/'
+        url 'https://maven.terraformersmc.com/releases'
     }
 }
 

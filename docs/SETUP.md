@@ -64,7 +64,7 @@ Or set the folders by hand:
 ```
 /df pull myGame      # scan plot -> plots\myGame\*.py  (first time: names + links the plot)
 /df pull             # later: no name -- detects the plot via /locate and resumes its project
-# ...you + Claude edit plots\myGame\*.py...
+# ...you edit plots\myGame\*.py...
 /df push             # place changed/added lines back (swap; safe to repeat, never deletes)
 ```
 
@@ -157,7 +157,7 @@ If DF ever renames `/locate`, set it with the `locateCommand` field in `df-vibe.
    DF VIBE mod ────────┘
      │  /df pull,push          spawns
      ├─ reads plot id via /locate (auto-detect)
-     └─ subprocess ─► codec\dfpy.py  ◄─► plots\<project>\*.py  ◄─ you + Claude edit
+     └─ subprocess ─► codec\dfpy.py  ◄─► plots\<project>\*.py  ◄─ you edit
 ```
 
 The mod handles the game side (chat commands, CodeClient socket, files, backups).

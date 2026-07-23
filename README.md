@@ -5,7 +5,7 @@ All from in-game `/df` commands.
 ## Setup
 
 1. Drop `dfvibe-1.0.0.jar` into `mods/` next to **Fabric API** (Minecraft 1.21.11). Don't run
-   stock CodeClient alongside it — DF Vibe already includes it.
+   stock CodeClient alongside it, DF Vibe already includes it.
 2. Have Python installed.
 3. In-game: `/df path auto` sets everything up, then `/df pull <name>` on your plot.
 
